@@ -48,12 +48,14 @@ async function showApp() {
 
   // 從 Supabase 載入資料
   await loadFromSupabase();
+  await loadDecisions();
 
   // 載入第一個專案
   switchProject(Object.keys(PROJECTS)[0]);
 
   // 訂閱即時更新
   subscribeRealtime();
+  subscribeDecisions();
 }
 
 // ===== Supabase 資料同步 =====
@@ -284,6 +286,9 @@ async function updateCardStatus() {
   const newStatus = document.getElementById('panel-status-select').value;
   card.status = newStatus;
 
+  // 更新儀表板數字
+  renderBrief();
+
   // upsert 到 Supabase
   await sb.from('board_card_status').upsert({
     project_id: currentProject,
@@ -412,6 +417,75 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// ===== 決議紀錄 =====
+let decisions = [];
+
+async function loadDecisions() {
+  const { data } = await sb
+    .from('board_decisions')
+    .select('*')
+    .eq('project_id', currentProject)
+    .order('created_at', { ascending: false });
+  decisions = data || [];
+}
+
+function subscribeDecisions() {
+  sb.channel('board-decisions')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'board_decisions' }, payload => {
+      const row = payload.new;
+      if (row.project_id !== currentProject) return;
+      // 避免重複
+      if (decisions.some(d => d.id === row.id)) return;
+      decisions.unshift(row);
+      renderDecisionsList();
+    })
+    .subscribe();
+}
+
+function renderDecisionsList() {
+  const list = document.getElementById('decisions-list');
+  if (!list) return;
+
+  if (decisions.length === 0) {
+    list.innerHTML = '<div class="brief-no-decisions">尚無決議紀錄</div>';
+    return;
+  }
+
+  list.innerHTML = decisions.map(d => `
+    <div class="brief-decision">
+      <div class="brief-decision-header">
+        <span class="brief-decision-date">${escapeHtml(d.date)}</span>
+        <span class="brief-decision-author">${escapeHtml(d.author)}</span>
+      </div>
+      <div class="brief-decision-text">${escapeHtml(d.text)}</div>
+    </div>
+  `).join('');
+}
+
+async function addDecision() {
+  const textarea = document.getElementById('decision-text');
+  const text = textarea.value.trim();
+  if (!text) return;
+
+  const now = new Date();
+  const date = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
+
+  const newDecision = {
+    project_id: currentProject,
+    date: date,
+    text: text,
+    author: currentUser.name
+  };
+
+  // 本地先顯示
+  decisions.unshift({ ...newDecision, id: Date.now() });
+  textarea.value = '';
+  renderDecisionsList();
+
+  // 寫入 Supabase
+  await sb.from('board_decisions').insert(newDecision);
+}
+
 // ===== 左側簡報面板 =====
 function renderBrief() {
   const project = PROJECTS[currentProject];
@@ -422,6 +496,39 @@ function renderBrief() {
   const b = project.brief;
 
   let html = '';
+
+  // 狀態儀表板（自動統計）
+  const counts = { confirmed: 0, discuss: 0, gap: 0 };
+  project.cards.forEach(c => { if (counts[c.status] !== undefined) counts[c.status]++; });
+
+  html += `<div class="brief-section">
+    <div class="brief-section-title">進度總覽</div>
+    <div class="brief-dashboard">
+      <div class="brief-stat stat-confirmed">
+        <div class="brief-stat-number">${counts.confirmed}</div>
+        <div class="brief-stat-label">已確認</div>
+      </div>
+      <div class="brief-stat stat-discuss">
+        <div class="brief-stat-number">${counts.discuss}</div>
+        <div class="brief-stat-label">待討論</div>
+      </div>
+      <div class="brief-stat stat-gap">
+        <div class="brief-stat-number">${counts.gap}</div>
+        <div class="brief-stat-label">API缺口</div>
+      </div>
+    </div>
+  </div>`;
+
+  // 決議紀錄
+  html += `<div class="brief-section">
+    <div class="brief-section-title">決議紀錄</div>
+    <div id="decisions-list"></div>
+    <div class="brief-decision-input">
+      <textarea id="decision-text" placeholder="記錄會議決議或重要共識..." rows="2"></textarea>
+      <button onclick="addDecision()">新增決議</button>
+      <div style="clear:both"></div>
+    </div>
+  </div>`;
 
   // 專案背景
   html += `<div class="brief-section">
@@ -480,6 +587,9 @@ function renderBrief() {
   </div>`;
 
   document.getElementById('brief-content').innerHTML = html;
+
+  // 渲染決議列表
+  renderDecisionsList();
 }
 
 function toggleBrief() {

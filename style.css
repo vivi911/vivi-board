@@ -449,6 +449,127 @@ body {
   margin-bottom: 4px;
 }
 
+/* 狀態儀表板 */
+.brief-dashboard {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.brief-stat {
+  flex: 1;
+  text-align: center;
+  padding: 10px 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.brief-stat-number {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.brief-stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.brief-stat.stat-confirmed { background: var(--green-bg); border-color: var(--green-border); }
+.brief-stat.stat-confirmed .brief-stat-number { color: var(--green); }
+.brief-stat.stat-confirmed .brief-stat-label { color: var(--green); }
+
+.brief-stat.stat-discuss { background: var(--yellow-bg); border-color: var(--yellow-border); }
+.brief-stat.stat-discuss .brief-stat-number { color: var(--yellow); }
+.brief-stat.stat-discuss .brief-stat-label { color: var(--yellow); }
+
+.brief-stat.stat-gap { background: var(--red-bg); border-color: var(--red-border); }
+.brief-stat.stat-gap .brief-stat-number { color: var(--red); }
+.brief-stat.stat-gap .brief-stat-label { color: var(--red); }
+
+/* 決議紀錄 */
+.brief-decision {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.brief-decision:last-child { border-bottom: none; }
+
+.brief-decision-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.brief-decision-date {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+.brief-decision-author {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.brief-decision-text {
+  font-size: 12px;
+  color: var(--text-body);
+  line-height: 1.6;
+}
+
+.brief-decision-input {
+  margin-top: 8px;
+}
+
+.brief-decision-input textarea {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text-primary);
+  resize: none;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.brief-decision-input textarea:focus {
+  border-color: var(--gold);
+  box-shadow: var(--shadow-gold);
+}
+
+.brief-decision-input button {
+  margin-top: 6px;
+  float: right;
+  padding: 5px 14px;
+  background: var(--text-primary);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.brief-decision-input button:hover {
+  background: #333130;
+}
+
+.brief-no-decisions {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 12px;
+}
+
 /* ===== 白板區域 ===== */
 #board-container {
   position: fixed;
