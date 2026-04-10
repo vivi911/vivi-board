@@ -52,9 +52,9 @@ async function showApp() {
     select.appendChild(opt);
   }
 
-  // 從 Firestore 載入資料
-  await loadFromFirestore();
-  await loadDecisions();
+  // 從 Firestore 載入資料（任一失敗不影響其他）
+  await loadFromFirestore().catch(e => console.warn('載入卡片/留言失敗', e));
+  await loadDecisions().catch(e => console.warn('載入決議失敗', e));
 
   // 載入第一個專案
   switchProject(Object.keys(PROJECTS)[0]);
@@ -409,13 +409,14 @@ document.addEventListener('keydown', (e) => {
 let decisions = [];
 
 async function loadDecisions() {
+  const projId = currentProject || Object.keys(PROJECTS)[0];
   const snap = await db.collection('board_decisions')
-    .where('project_id', '==', currentProject || Object.keys(PROJECTS)[0])
     .orderBy('created_at', 'desc')
     .get();
   decisions = [];
   snap.forEach(doc => {
     const d = doc.data();
+    if (d.project_id !== projId) return;
     decisions.push({
       id: doc.id,
       ...d,
