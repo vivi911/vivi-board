@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vivi's Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 登入畫面 -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1 class="login-title">Vivi's Board</h1>
+    <p class="login-subtitle">專案協作白板</p>
+    <div class="login-form">
+      <label>請輸入你的名字</label>
+      <input type="text" id="login-name" placeholder="例如：Sam" />
+      <label>選擇你的角色</label>
+      <div class="role-options">
+        <label class="role-option">
+          <input type="radio" name="role" value="管理者" checked />
+          <span class="role-label">管理者（Vivi）</span>
+        </label>
+        <label class="role-option">
+          <input type="radio" name="role" value="開發商" />
+          <span class="role-label">開發商（采盟）</span>
+        </label>
+        <label class="role-option">
+          <input type="radio" name="role" value="美力內部" />
+          <span class="role-label">美力內部</span>
+        </label>
+        <label class="role-option">
+          <input type="radio" name="role" value="訪客" />
+          <span class="role-label">訪客</span>
+        </label>
+      </div>
+      <button id="login-btn" onclick="doLogin()">進入白板</button>
+    </div>
+  </div>
+</div>
+
+<!-- 主畫面 -->
+<div id="app" style="display:none;">
+  <!-- 頂部導航 -->
+  <header id="header">
+    <div class="header-left">
+      <span class="logo">Vivi's Board</span>
+      <select id="project-select" onchange="switchProject(this.value)"></select>
+    </div>
+    <div class="header-right">
+      <div class="legend">
+        <span class="legend-item"><span class="dot dot-confirmed"></span>已確認</span>
+        <span class="legend-item"><span class="dot dot-discuss"></span>待討論</span>
+        <span class="legend-item"><span class="dot dot-gap"></span>API缺口</span>
+      </div>
+      <span id="user-badge"></span>
+    </div>
+  </header>
+
+  <!-- 白板區域 -->
+  <div id="board-container">
+    <div id="board">
+      <svg id="connections"></svg>
+      <div id="cards-container"></div>
+    </div>
+  </div>
+
+  <!-- 縮放控制 -->
+  <div id="zoom-controls">
+    <button onclick="zoomOut()" title="縮小">−</button>
+    <span id="zoom-display">100%</span>
+    <button onclick="zoomIn()" title="放大">+</button>
+    <button onclick="zoomFit()" title="全覽" class="zoom-fit">全覽</button>
+  </div>
+
+  <!-- 右側面板 -->
+  <div id="panel" class="panel-hidden">
+    <div class="panel-header">
+      <h2 id="panel-title"></h2>
+      <button class="panel-close" onclick="closePanel()">&times;</button>
+    </div>
+    <div class="panel-status">
+      <label>狀態：</label>
+      <select id="panel-status-select" onchange="updateCardStatus()">
+        <option value="confirmed">✅ 已確認</option>
+        <option value="discuss">📌 待討論</option>
+        <option value="gap">❌ API缺口</option>
+      </select>
+    </div>
+    <div class="panel-content" id="panel-content"></div>
+    <div class="panel-comments">
+      <h3>留言</h3>
+      <div id="comments-list"></div>
+      <div class="comment-input">
+        <textarea id="comment-text" placeholder="輸入留言..." rows="3"></textarea>
+        <button onclick="addComment()">送出</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
