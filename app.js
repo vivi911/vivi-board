@@ -1,7 +1,13 @@
-// ===== Supabase 設定 =====
-const SUPABASE_URL = 'https://dfsvbztprtckxgttsprh.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRmc3ZienRwcnRja3hndHRzcHJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3MzAwMzAsImV4cCI6MjA4NTMwNjAzMH0.NJ0FuF6YF7NHa-gXhyyaFN3IK3AOA00EslJ-Z4Z86dY';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ===== Firebase / Firestore 設定 =====
+firebase.initializeApp({
+  apiKey: "AIzaSyC4en4_40m2UFCaqgPyWDr_CVU4Yp4GM-Y",
+  authDomain: "gen-lang-client-0000195777.firebaseapp.com",
+  projectId: "gen-lang-client-0000195777",
+  storageBucket: "gen-lang-client-0000195777.firebasestorage.app",
+  messagingSenderId: "153654770920",
+  appId: "1:153654770920:web:010755920515b951459d5d"
+});
+const db = firebase.firestore();
 
 // ===== 全域狀態 =====
 let currentUser = { name: '', role: '' };
@@ -46,8 +52,8 @@ async function showApp() {
     select.appendChild(opt);
   }
 
-  // 從 Supabase 載入資料
-  await loadFromSupabase();
+  // 從 Firestore 載入資料
+  await loadFromFirestore();
   await loadDecisions();
 
   // 載入第一個專案
@@ -58,94 +64,89 @@ async function showApp() {
   subscribeDecisions();
 }
 
-// ===== Supabase 資料同步 =====
-async function loadFromSupabase() {
+// ===== Firestore 資料同步 =====
+async function loadFromFirestore() {
   // 載入卡片狀態
-  const { data: statuses } = await sb
-    .from('board_card_status')
-    .select('*');
-
-  if (statuses) {
-    statuses.forEach(row => {
-      if (!PROJECTS[row.project_id]) return;
-      const card = PROJECTS[row.project_id].cards.find(c => c.id === row.card_id);
-      if (card) card.status = row.status;
-    });
-  }
+  const statusSnap = await db.collection('board_card_status').get();
+  statusSnap.forEach(doc => {
+    const row = doc.data();
+    if (!PROJECTS[row.project_id]) return;
+    const card = PROJECTS[row.project_id].cards.find(c => c.id === row.card_id);
+    if (card) card.status = row.status;
+  });
 
   // 載入留言
-  const { data: comments } = await sb
-    .from('board_comments')
-    .select('*')
-    .order('created_at', { ascending: true });
+  const commentsSnap = await db.collection('board_comments')
+    .orderBy('created_at', 'asc')
+    .get();
 
-  if (comments) {
-    // 先清空所有留言
-    for (const proj of Object.values(PROJECTS)) {
-      proj.cards.forEach(card => { card.comments = []; });
-    }
-    comments.forEach(row => {
-      if (!PROJECTS[row.project_id]) return;
-      const card = PROJECTS[row.project_id].cards.find(c => c.id === row.card_id);
-      if (card) {
-        card.comments.push({
-          author: row.author,
-          role: row.role,
-          text: row.text,
-          time: formatTime(new Date(row.created_at))
-        });
-      }
-    });
+  // 先清空所有留言
+  for (const proj of Object.values(PROJECTS)) {
+    proj.cards.forEach(card => { card.comments = []; });
   }
+  commentsSnap.forEach(doc => {
+    const row = doc.data();
+    if (!PROJECTS[row.project_id]) return;
+    const card = PROJECTS[row.project_id].cards.find(c => c.id === row.card_id);
+    if (card) {
+      card.comments.push({
+        id: doc.id,
+        author: row.author,
+        role: row.role,
+        text: row.text,
+        time: formatTime(row.created_at ? row.created_at.toDate() : new Date())
+      });
+    }
+  });
 }
 
 function subscribeRealtime() {
   // 監聽留言新增
-  sb.channel('board-comments')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'board_comments' }, payload => {
-      const row = payload.new;
-      if (!PROJECTS[row.project_id]) return;
-      const card = PROJECTS[row.project_id].cards.find(c => c.id === row.card_id);
-      if (!card) return;
+  db.collection('board_comments')
+    .orderBy('created_at', 'asc')
+    .onSnapshot(snapshot => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type !== 'added') return;
+        const row = change.doc.data();
+        if (!PROJECTS[row.project_id]) return;
+        const card = PROJECTS[row.project_id].cards.find(c => c.id === row.card_id);
+        if (!card) return;
 
-      // 避免重複（自己剛發的）
-      const exists = card.comments.some(c =>
-        c.author === row.author && c.text === row.text &&
-        c.time === formatTime(new Date(row.created_at))
-      );
-      if (exists) return;
+        // 避免重複
+        if (card.comments.some(c => c.id === change.doc.id)) return;
 
-      card.comments.push({
-        author: row.author,
-        role: row.role,
-        text: row.text,
-        time: formatTime(new Date(row.created_at))
+        card.comments.push({
+          id: change.doc.id,
+          author: row.author,
+          role: row.role,
+          text: row.text,
+          time: formatTime(row.created_at ? row.created_at.toDate() : new Date())
+        });
+
+        if (currentProject === row.project_id && currentCardId === row.card_id) {
+          renderComments(card);
+        }
+        renderBoard();
       });
-
-      // 如果正在看這張卡 → 刷新留言
-      if (currentProject === row.project_id && currentCardId === row.card_id) {
-        renderComments(card);
-      }
-      renderBoard();
-    })
-    .subscribe();
+    });
 
   // 監聽狀態更新
-  sb.channel('board-status')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'board_card_status' }, payload => {
-      const row = payload.new;
-      if (!PROJECTS[row.project_id]) return;
-      const card = PROJECTS[row.project_id].cards.find(c => c.id === row.card_id);
-      if (card) {
-        card.status = row.status;
-        renderBoard();
-        // 如果正在看這張卡 → 更新面板
-        if (currentProject === row.project_id && currentCardId === row.card_id) {
-          document.getElementById('panel-status-select').value = row.status;
+  db.collection('board_card_status')
+    .onSnapshot(snapshot => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'removed') return;
+        const row = change.doc.data();
+        if (!PROJECTS[row.project_id]) return;
+        const card = PROJECTS[row.project_id].cards.find(c => c.id === row.card_id);
+        if (card) {
+          card.status = row.status;
+          renderBoard();
+          if (currentProject === row.project_id && currentCardId === row.card_id) {
+            document.getElementById('panel-status-select').value = row.status;
+          }
         }
-      }
-    })
-    .subscribe();
+      });
+    });
 }
 
 function formatTime(date) {
@@ -286,17 +287,17 @@ async function updateCardStatus() {
   const newStatus = document.getElementById('panel-status-select').value;
   card.status = newStatus;
 
-  // 更新儀表板數字
   renderBrief();
 
-  // upsert 到 Supabase
-  await sb.from('board_card_status').upsert({
+  // 寫入 Firestore（用 project_id + card_id 當 doc ID）
+  const docId = `${currentProject}_${currentCardId}`;
+  await db.collection('board_card_status').doc(docId).set({
     project_id: currentProject,
     card_id: currentCardId,
     status: newStatus,
     updated_by: currentUser.name,
-    updated_at: new Date().toISOString()
-  }, { onConflict: 'project_id,card_id' });
+    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+  });
 
   renderBoard();
 
@@ -338,34 +339,17 @@ async function addComment() {
 
   if (!card.comments) card.comments = [];
 
-  const now = new Date();
-  const time = formatTime(now);
-
-  // 先在本地顯示
-  card.comments.push({
-    author: currentUser.name,
-    role: currentUser.role,
-    text: text,
-    time: time
-  });
-
   textarea.value = '';
-  renderComments(card);
-  renderBoard();
 
-  // 寫入 Supabase
-  await sb.from('board_comments').insert({
+  // 寫入 Firestore（onSnapshot 會自動更新 UI）
+  await db.collection('board_comments').add({
     project_id: currentProject,
     card_id: currentCardId,
     author: currentUser.name,
     role: currentUser.role,
-    text: text
+    text: text,
+    created_at: firebase.firestore.FieldValue.serverTimestamp()
   });
-
-  setTimeout(() => {
-    const el = document.getElementById(`card-${currentCardId}`);
-    if (el) el.classList.add('active');
-  }, 10);
 }
 
 // ===== 縮放 =====
@@ -412,6 +396,10 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     addComment();
   }
+  if (e.target.id === 'decision-text' && e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    addDecision();
+  }
   if (e.key === 'Escape') {
     closePanel();
   }
@@ -421,25 +409,36 @@ document.addEventListener('keydown', (e) => {
 let decisions = [];
 
 async function loadDecisions() {
-  const { data } = await sb
-    .from('board_decisions')
-    .select('*')
-    .eq('project_id', currentProject)
-    .order('created_at', { ascending: false });
-  decisions = data || [];
+  const snap = await db.collection('board_decisions')
+    .where('project_id', '==', currentProject || Object.keys(PROJECTS)[0])
+    .orderBy('created_at', 'desc')
+    .get();
+  decisions = [];
+  snap.forEach(doc => {
+    const d = doc.data();
+    decisions.push({
+      id: doc.id,
+      ...d,
+      date: d.date || '',
+      text: d.text || '',
+      author: d.author || ''
+    });
+  });
 }
 
 function subscribeDecisions() {
-  sb.channel('board-decisions')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'board_decisions' }, payload => {
-      const row = payload.new;
-      if (row.project_id !== currentProject) return;
-      // 避免重複
-      if (decisions.some(d => d.id === row.id)) return;
-      decisions.unshift(row);
-      renderDecisionsList();
-    })
-    .subscribe();
+  db.collection('board_decisions')
+    .orderBy('created_at', 'desc')
+    .onSnapshot(snapshot => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type !== 'added') return;
+        const row = change.doc.data();
+        if (row.project_id !== currentProject) return;
+        if (decisions.some(d => d.id === change.doc.id)) return;
+        decisions.unshift({ id: change.doc.id, ...row });
+        renderDecisionsList();
+      });
+    });
 }
 
 function renderDecisionsList() {
@@ -470,20 +469,16 @@ async function addDecision() {
   const now = new Date();
   const date = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
 
-  const newDecision = {
+  textarea.value = '';
+
+  // 寫入 Firestore（onSnapshot 會自動更新 UI）
+  await db.collection('board_decisions').add({
     project_id: currentProject,
     date: date,
     text: text,
-    author: currentUser.name
-  };
-
-  // 本地先顯示
-  decisions.unshift({ ...newDecision, id: Date.now() });
-  textarea.value = '';
-  renderDecisionsList();
-
-  // 寫入 Supabase
-  await sb.from('board_decisions').insert(newDecision);
+    author: currentUser.name,
+    created_at: firebase.firestore.FieldValue.serverTimestamp()
+  });
 }
 
 // ===== 左側簡報面板 =====
@@ -587,8 +582,6 @@ function renderBrief() {
   </div>`;
 
   document.getElementById('brief-content').innerHTML = html;
-
-  // 渲染決議列表
   renderDecisionsList();
 }
 
