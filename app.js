@@ -154,6 +154,7 @@ function formatTime(date) {
 function switchProject(projectId) {
   currentProject = projectId;
   closePanel();
+  renderBrief();
   renderBoard();
 }
 
@@ -410,6 +411,86 @@ document.addEventListener('keydown', (e) => {
     closePanel();
   }
 });
+
+// ===== 左側簡報面板 =====
+function renderBrief() {
+  const project = PROJECTS[currentProject];
+  if (!project || !project.brief) {
+    document.getElementById('brief-content').innerHTML = '';
+    return;
+  }
+  const b = project.brief;
+
+  let html = '';
+
+  // 專案背景
+  html += `<div class="brief-section">
+    <div class="brief-section-title">專案背景</div>
+    <div class="brief-text">${escapeHtml(b.background)}</div>
+  </div>`;
+
+  // 痛點
+  html += `<div class="brief-section">
+    <div class="brief-section-title">現況痛點</div>
+    ${b.pain_points.map(p => `<div class="brief-pain">${escapeHtml(p)}</div>`).join('')}
+  </div>`;
+
+  // 角色
+  html += `<div class="brief-section">
+    <div class="brief-section-title">參與角色</div>
+    ${b.roles.map(r => `
+      <div class="brief-role-row">
+        <span class="brief-role-name">${escapeHtml(r.name)}</span>
+        <span class="brief-role-desc">${escapeHtml(r.desc)}</span>
+      </div>
+    `).join('')}
+  </div>`;
+
+  // 團隊
+  html += `<div class="brief-section">
+    <div class="brief-section-title">專案團隊</div>
+    ${b.team.map(t => `
+      <div class="brief-team-row">
+        <span class="brief-team-role">${escapeHtml(t.role)}</span>
+        <span><span class="brief-team-name">${escapeHtml(t.name)}</span> <span class="brief-team-org">${escapeHtml(t.org)}</span></span>
+      </div>
+    `).join('')}
+  </div>`;
+
+  // 據點
+  html += `<div class="brief-section">
+    <div class="brief-section-title">據點</div>
+    <div class="brief-locations">
+      ${b.locations.map(l => `<span class="brief-location-tag">${escapeHtml(l)}</span>`).join('')}
+    </div>
+  </div>`;
+
+  // Phase 進度
+  const phaseLabel = { current: '進行中', planned: '規劃中', blocked: '卡關' };
+  html += `<div class="brief-section">
+    <div class="brief-section-title">開發階段</div>
+    ${b.phases.map(p => `
+      <div class="brief-phase">
+        <span class="brief-phase-id">${escapeHtml(p.id)}</span>
+        <span class="brief-phase-name">${escapeHtml(p.name)}</span>
+        <span class="brief-phase-badge phase-${p.status}">${phaseLabel[p.status]}</span>
+      </div>
+      ${p.note ? `<div class="brief-phase-note">${escapeHtml(p.note)}</div>` : ''}
+    `).join('')}
+  </div>`;
+
+  document.getElementById('brief-content').innerHTML = html;
+}
+
+function toggleBrief() {
+  const panel = document.getElementById('brief-panel');
+  const board = document.getElementById('board-container');
+  const toggle = panel.querySelector('.brief-toggle');
+
+  panel.classList.toggle('collapsed');
+  board.classList.toggle('brief-collapsed');
+  toggle.textContent = panel.classList.contains('collapsed') ? '\u25B6' : '\u25C0';
+}
 
 // ===== 初始化 =====
 (function init() {

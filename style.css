@@ -256,11 +256,204 @@ body {
   border-radius: 20px;
 }
 
+/* ===== 左側簡報面板 ===== */
+#brief-panel {
+  position: fixed;
+  top: 52px;
+  left: 0;
+  bottom: 0;
+  width: 320px;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, width 0.3s ease;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.04);
+}
+
+#brief-panel.collapsed {
+  transform: translateX(-320px);
+}
+
+.brief-toggle {
+  position: absolute;
+  right: -28px;
+  top: 12px;
+  width: 28px;
+  height: 32px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--text-muted);
+  z-index: 51;
+  transition: all 0.15s;
+}
+
+.brief-toggle:hover {
+  background: var(--bg-elevated);
+  color: var(--text-body);
+}
+
+#brief-panel.collapsed .brief-toggle {
+  right: -28px;
+}
+
+.brief-scroll {
+  overflow-y: auto;
+  flex: 1;
+  padding: 20px;
+}
+
+.brief-section {
+  margin-bottom: 20px;
+}
+
+.brief-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.brief-text {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--text-body);
+  white-space: pre-line;
+}
+
+.brief-pain {
+  font-size: 12px;
+  color: var(--text-body);
+  padding: 6px 0 6px 12px;
+  border-left: 2px solid var(--red);
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+.brief-role-row {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 12px;
+  align-items: baseline;
+}
+
+.brief-role-row:last-child { border-bottom: none; }
+
+.brief-role-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 64px;
+  flex-shrink: 0;
+}
+
+.brief-role-desc {
+  color: var(--text-secondary);
+}
+
+.brief-team-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 12px;
+}
+
+.brief-team-row:last-child { border-bottom: none; }
+
+.brief-team-role { color: var(--text-secondary); }
+.brief-team-name { font-weight: 600; color: var(--text-primary); }
+.brief-team-org { color: var(--text-muted); font-size: 11px; }
+
+.brief-locations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.brief-location-tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-body);
+}
+
+.brief-phase {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 12px;
+}
+
+.brief-phase:last-child { border-bottom: none; }
+
+.brief-phase-id {
+  font-weight: 700;
+  color: var(--text-muted);
+  font-size: 10px;
+  min-width: 24px;
+}
+
+.brief-phase-name {
+  flex: 1;
+  color: var(--text-body);
+}
+
+.brief-phase-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.phase-current {
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid var(--green-border);
+}
+
+.phase-planned {
+  background: var(--bg-canvas);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.phase-blocked {
+  background: var(--red-bg);
+  color: var(--red);
+  border: 1px solid var(--red-border);
+}
+
+.brief-phase-note {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 32px;
+  margin-top: -4px;
+  margin-bottom: 4px;
+}
+
 /* ===== 白板區域 ===== */
 #board-container {
   position: fixed;
   top: 52px;
-  left: 0;
+  left: 320px;
   right: 0;
   bottom: 0;
   overflow: auto;
@@ -268,6 +461,11 @@ body {
   background-image:
     radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px);
   background-size: 20px 20px;
+  transition: left 0.3s ease;
+}
+
+#board-container.brief-collapsed {
+  left: 0;
 }
 
 #board {
