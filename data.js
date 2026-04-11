@@ -415,30 +415,13 @@ BA照片流程：
         title: "術後追蹤",
         status: "confirmed",
         col: 13, row: 0,
-        next: ["customer-page"],
+        next: [],
         content: `對應紙本「追蹤記錄單」
 術後追蹤紀錄電子化
 追蹤時間點、客戶反饋、恢復狀況
 與客人微型頁面串接（客人可查看術後注意事項）`,
         comments: []
       },
-      {
-        id: "customer-page",
-        category: "功能",
-        title: "客人微型頁面（LINE OA）",
-        status: "confirmed",
-        col: 14, row: 0,
-        next: [],
-        content: `客人綁 LINE OA 後可自助查詢：
-- 剩餘療程堂數
-- 下次預約時間
-- 術後注意事項
-- 個人基本資料修改
-
-減少客人打電話問堂數的客服負擔
-來源：霈方原規格「查看剩餘課程及堂數」功能`,
-        comments: []
-      }
     ]
   }
 };
