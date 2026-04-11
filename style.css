@@ -641,9 +641,15 @@ body {
   flex-shrink: 0;
 }
 
-.brief-check-item.done span {
+.brief-check-item.done > div > span {
   text-decoration: line-through;
   color: var(--text-muted);
+}
+
+.brief-check-who {
+  font-size: 10px;
+  color: var(--gold);
+  margin-top: 2px;
 }
 
 /* 基礎設施 */

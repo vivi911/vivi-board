@@ -609,7 +609,10 @@ function renderBrief() {
         ${b.discussions.map((d, i) => `
           <label class="brief-check-item ${d.done ? 'done' : ''}">
             <input type="checkbox" ${d.done ? 'checked' : ''} onchange="toggleDiscussion(${i})">
-            <span>${escapeHtml(d.text)}</span>
+            <div>
+              <span>${escapeHtml(d.text)}</span>
+              ${d.done && d.checkedBy ? `<div class="brief-check-who">${escapeHtml(d.checkedBy)} 確認 · ${escapeHtml(d.checkedAt || '')}</div>` : ''}
+            </div>
           </label>
         `).join('')}
       </div>
@@ -642,9 +645,15 @@ async function loadDiscussionState() {
     const states = doc.data().discussions || [];
     const project = PROJECTS[projId];
     if (project && project.brief && project.brief.discussions) {
-      states.forEach((done, i) => {
+      states.forEach((state, i) => {
         if (i < project.brief.discussions.length) {
-          project.brief.discussions[i].done = done;
+          if (typeof state === 'boolean') {
+            project.brief.discussions[i].done = state;
+          } else {
+            project.brief.discussions[i].done = state.done || false;
+            project.brief.discussions[i].checkedBy = state.checkedBy || null;
+            project.brief.discussions[i].checkedAt = state.checkedAt || null;
+          }
         }
       });
     }
@@ -654,11 +663,19 @@ async function loadDiscussionState() {
 function toggleDiscussion(index) {
   const project = PROJECTS[currentProject];
   if (!project || !project.brief || !project.brief.discussions) return;
-  project.brief.discussions[index].done = !project.brief.discussions[index].done;
+  const item = project.brief.discussions[index];
+  item.done = !item.done;
+  item.checkedBy = item.done ? currentUser.name : null;
+  item.checkedAt = item.done ? new Date().toLocaleDateString('zh-TW') : null;
   // 存到 Firestore
   db.collection('board_discussions_state').doc(currentProject).set({
-    discussions: project.brief.discussions.map(d => d.done)
+    discussions: project.brief.discussions.map(d => ({
+      done: d.done,
+      checkedBy: d.checkedBy || null,
+      checkedAt: d.checkedAt || null
+    }))
   });
+  renderBrief();
 }
 
 function toggleBrief() {
