@@ -751,7 +751,7 @@ function renderArchBanner(container) {
       <div class="arch-banner-label">資料來源層 DATA SOURCES</div>
       <span class="arch-banner-toggle">${collapsed ? '\u25B6 展開' : '\u25BC 收合'}</span>
     </div>
-    <div class="arch-banner-body ${collapsed ? 'arch-collapsed' : ''}">`;
+    <div class="arch-banner-body ${collapsed ? 'arch-collapsed' : ''}">
       <div class="arch-banner-boxes">
         <div class="arch-box">
           <div class="arch-box-title">鼎新公司</div>
