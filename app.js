@@ -56,6 +56,7 @@ async function showApp() {
   await loadFromFirestore().catch(e => console.warn('載入卡片/留言失敗', e));
   await loadDecisions().catch(e => console.warn('載入決議失敗', e));
   await loadDiscussionState().catch(e => console.warn('載入討論狀態失敗', e));
+  await loadCardPositions().catch(e => console.warn('載入卡片位置失敗', e));
 
   // 載入第一個專案
   switchProject(Object.keys(PROJECTS)[0]);
@@ -175,6 +176,11 @@ function renderBoard() {
     const x = OFFSET_X + card.col * GAP_X;
     const y = OFFSET_Y + (card.row + 1.5) * GAP_Y;
     positions[card.id] = { x, y };
+  });
+  positions_cache = positions;
+
+  project.cards.forEach(card => {
+    const { x, y } = positions[card.id];
 
     const el = document.createElement('div');
     el.className = `card status-${card.status}-bar`;
@@ -207,44 +213,52 @@ function renderBoard() {
         </div>
       `;
     }
+    // 拖曳功能
+    makeDraggable(el, card);
     container.appendChild(el);
   });
 
-  // 繪製連接線
+  // 繪製連接線（智能方向）
   project.cards.forEach(card => {
     if (!card.next) return;
     const from = positions[card.id];
     if (!from) return;
+    const fromW = card.mockup ? 500 : CARD_W;
 
     card.next.forEach(nextId => {
       const to = positions[nextId];
       if (!to) return;
-
-      const fromCard = project.cards.find(c => c.id === card.id);
       const toCard = project.cards.find(c => c.id === nextId);
-      const fromW = (fromCard && fromCard.mockup) ? 500 : CARD_W;
       const toW = (toCard && toCard.mockup) ? 500 : CARD_W;
-      const x1 = from.x + fromW;
-      const y1 = from.y + CARD_H / 2;
-      const x2 = to.x;
-      const y2 = to.y + CARD_H / 2;
+
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      let x1, y1, x2, y2;
+
+      if (Math.abs(dy) > CARD_H && Math.abs(dy) > Math.abs(dx) * 0.8) {
+        // 往下/上 → 從底部/頂部中央出發
+        if (dy > 0) {
+          x1 = from.x + fromW / 2; y1 = from.y + CARD_H;
+          x2 = to.x + toW / 2; y2 = to.y;
+        } else {
+          x1 = from.x + fromW / 2; y1 = from.y;
+          x2 = to.x + toW / 2; y2 = to.y + CARD_H;
+        }
+      } else {
+        // 往右 → 從右邊中央出發
+        x1 = from.x + fromW; y1 = from.y + CARD_H / 2;
+        x2 = to.x; y2 = to.y + CARD_H / 2;
+      }
 
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', x1);
-      line.setAttribute('y1', y1);
-      line.setAttribute('x2', x2);
-      line.setAttribute('y2', y2);
+      line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+      line.setAttribute('x2', x2); line.setAttribute('y2', y2);
       svg.appendChild(line);
 
       const angle = Math.atan2(y2 - y1, x2 - x1);
       const arrowLen = 10;
-      const ax = x2 - arrowLen * Math.cos(angle - 0.4);
-      const ay = y2 - arrowLen * Math.sin(angle - 0.4);
-      const bx = x2 - arrowLen * Math.cos(angle + 0.4);
-      const by = y2 - arrowLen * Math.sin(angle + 0.4);
-
       const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      arrow.setAttribute('points', `${x2},${y2} ${ax},${ay} ${bx},${by}`);
+      arrow.setAttribute('points', `${x2},${y2} ${x2 - arrowLen * Math.cos(angle - 0.4)},${y2 - arrowLen * Math.sin(angle - 0.4)} ${x2 - arrowLen * Math.cos(angle + 0.4)},${y2 - arrowLen * Math.sin(angle + 0.4)}`);
       svg.appendChild(arrow);
     });
   });
@@ -709,6 +723,126 @@ function toggleDiscussion(index) {
   });
 
   renderBrief();
+}
+
+// ===== 卡片位置載入 =====
+async function loadCardPositions() {
+  const snap = await db.collection('board_card_positions').get();
+  snap.forEach(doc => {
+    const d = doc.data();
+    if (d.project_id !== (currentProject || Object.keys(PROJECTS)[0])) return;
+    const project = PROJECTS[d.project_id];
+    if (!project) return;
+    const card = project.cards.find(c => c.id === d.card_id);
+    if (card) {
+      card.col = d.col;
+      card.row = d.row;
+    }
+  });
+}
+
+// ===== 拖曳卡片 =====
+function makeDraggable(el, card) {
+  let startX, startY, origX, origY, dragging = false;
+
+  el.addEventListener('mousedown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+    startX = e.clientX;
+    startY = e.clientY;
+    origX = parseInt(el.style.left);
+    origY = parseInt(el.style.top);
+    dragging = false;
+
+    const onMove = (e2) => {
+      const dx = (e2.clientX - startX) / zoomLevel;
+      const dy = (e2.clientY - startY) / zoomLevel;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) dragging = true;
+      if (dragging) {
+        el.style.left = (origX + dx) + 'px';
+        el.style.top = (origY + dy) + 'px';
+        el.style.zIndex = 10;
+        // 即時更新連線
+        const project = PROJECTS[currentProject];
+        const pos = positions_cache;
+        if (pos) {
+          pos[card.id] = { x: origX + dx, y: origY + dy };
+          redrawConnections(project, pos);
+        }
+      }
+    };
+
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      el.style.zIndex = '';
+      if (dragging) {
+        // 算出新的 col/row
+        const newX = parseInt(el.style.left);
+        const newY = parseInt(el.style.top);
+        card.col = (newX - OFFSET_X) / GAP_X;
+        card.row = (newY - OFFSET_Y) / GAP_Y - 1.5;
+        // 存到 Firestore
+        const docId = `${currentProject}_${card.id}_pos`;
+        db.collection('board_card_positions').doc(docId).set({
+          project_id: currentProject,
+          card_id: card.id,
+          col: card.col,
+          row: card.row
+        });
+      }
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
+let positions_cache = null;
+
+function redrawConnections(project, positions) {
+  const svg = document.getElementById('connections');
+  svg.innerHTML = '';
+  project.cards.forEach(card => {
+    if (!card.next) return;
+    const from = positions[card.id];
+    if (!from) return;
+    const fromW = card.mockup ? 500 : CARD_W;
+
+    card.next.forEach(nextId => {
+      const to = positions[nextId];
+      if (!to) return;
+      const toCard = project.cards.find(c => c.id === nextId);
+      const toW = (toCard && toCard.mockup) ? 500 : CARD_W;
+
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      let x1, y1, x2, y2;
+
+      if (Math.abs(dy) > CARD_H && Math.abs(dy) > Math.abs(dx) * 0.8) {
+        if (dy > 0) {
+          x1 = from.x + fromW / 2; y1 = from.y + CARD_H;
+          x2 = to.x + toW / 2; y2 = to.y;
+        } else {
+          x1 = from.x + fromW / 2; y1 = from.y;
+          x2 = to.x + toW / 2; y2 = to.y + CARD_H;
+        }
+      } else {
+        x1 = from.x + fromW; y1 = from.y + CARD_H / 2;
+        x2 = to.x; y2 = to.y + CARD_H / 2;
+      }
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+      line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+      svg.appendChild(line);
+
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      const arrowLen = 10;
+      const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      arrow.setAttribute('points', `${x2},${y2} ${x2 - arrowLen * Math.cos(angle - 0.4)},${y2 - arrowLen * Math.sin(angle - 0.4)} ${x2 - arrowLen * Math.cos(angle + 0.4)},${y2 - arrowLen * Math.sin(angle + 0.4)}`);
+      svg.appendChild(arrow);
+    });
+  });
 }
 
 // ===== 示意畫面 Mockup =====
