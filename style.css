@@ -622,34 +622,62 @@ body {
 }
 
 .brief-check-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 6px 0;
-  font-size: 12px;
-  color: var(--text-body);
-  cursor: pointer;
-  line-height: 1.5;
+  padding: 8px 0;
   border-bottom: 1px solid var(--border-light);
 }
 
 .brief-check-item:last-child { border-bottom: none; }
 
-.brief-check-item input[type="checkbox"] {
+.brief-check-item.all-confirmed {
+  opacity: 0.5;
+}
+
+.brief-check-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-body);
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.brief-check-label input[type="checkbox"] {
   margin-top: 3px;
   accent-color: var(--gold);
   flex-shrink: 0;
 }
 
-.brief-check-item.done > div > span {
+.brief-check-item.my-checked .brief-check-label span {
   text-decoration: line-through;
   color: var(--text-muted);
 }
 
-.brief-check-who {
+.brief-check-votes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+  padding-left: 24px;
+}
+
+.vote-tag {
   font-size: 10px;
-  color: var(--gold);
-  margin-top: 2px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.vote-yes {
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid var(--green-border);
+}
+
+.vote-no {
+  background: var(--bg-canvas);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
 }
 
 /* 基礎設施 */

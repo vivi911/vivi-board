@@ -606,15 +606,25 @@ function renderBrief() {
     html += `<div class="brief-section">
       <div class="brief-section-title">待討論事項 <span class="brief-count">${b.discussions.filter(d=>!d.done).length} 項</span></div>
       <div class="brief-checklist">
-        ${b.discussions.map((d, i) => `
-          <label class="brief-check-item ${d.done ? 'done' : ''}">
-            <input type="checkbox" ${d.done ? 'checked' : ''} onchange="toggleDiscussion(${i})">
-            <div>
+        ${b.discussions.map((d, i) => {
+          const myChecked = isMyVote(i);
+          const votes = discussionVotes[i] || {};
+          const voters = Object.entries(votes);
+          const confirmedList = voters.filter(([_, v]) => v.checked);
+          const allConfirmed = voters.length > 0 && confirmedList.length === voters.length;
+          return `
+          <div class="brief-check-item ${myChecked ? 'my-checked' : ''} ${allConfirmed ? 'all-confirmed' : ''}">
+            <label class="brief-check-label">
+              <input type="checkbox" ${myChecked ? 'checked' : ''} onchange="toggleDiscussion(${i})">
               <span>${escapeHtml(d.text)}</span>
-              ${d.done && d.checkedBy ? `<div class="brief-check-who">${escapeHtml(d.checkedBy)} 確認 · ${escapeHtml(d.checkedAt || '')}</div>` : ''}
-            </div>
-          </label>
-        `).join('')}
+            </label>
+            ${voters.length > 0 ? `
+              <div class="brief-check-votes">
+                ${voters.map(([name, v]) => `<span class="vote-tag ${v.checked ? 'vote-yes' : 'vote-no'}">${escapeHtml(name)} ${v.checked ? '\u2713' : '\u2014'}</span>`).join('')}
+              </div>
+            ` : ''}
+          </div>`;
+        }).join('')}
       </div>
     </div>`;
   }
@@ -638,43 +648,47 @@ function renderBrief() {
   renderDecisionsList();
 }
 
+// 每個人的打勾狀態：{ "討論項目index": { "userName": true/false } }
+let discussionVotes = {};
+
 async function loadDiscussionState() {
   const projId = currentProject || Object.keys(PROJECTS)[0];
-  const doc = await db.collection('board_discussions_state').doc(projId).get();
-  if (doc.exists) {
-    const states = doc.data().discussions || [];
-    const project = PROJECTS[projId];
-    if (project && project.brief && project.brief.discussions) {
-      states.forEach((state, i) => {
-        if (i < project.brief.discussions.length) {
-          if (typeof state === 'boolean') {
-            project.brief.discussions[i].done = state;
-          } else {
-            project.brief.discussions[i].done = state.done || false;
-            project.brief.discussions[i].checkedBy = state.checkedBy || null;
-            project.brief.discussions[i].checkedAt = state.checkedAt || null;
-          }
-        }
-      });
-    }
-  }
+  const snap = await db.collection('board_discussion_votes')
+    .where('project_id', '==', projId)
+    .get();
+  discussionVotes = {};
+  snap.forEach(doc => {
+    const d = doc.data();
+    const key = d.index;
+    if (!discussionVotes[key]) discussionVotes[key] = {};
+    discussionVotes[key][d.user] = { checked: d.checked, date: d.date || '' };
+  });
+}
+
+function isMyVote(index) {
+  return discussionVotes[index] &&
+    discussionVotes[index][currentUser.name] &&
+    discussionVotes[index][currentUser.name].checked;
 }
 
 function toggleDiscussion(index) {
-  const project = PROJECTS[currentProject];
-  if (!project || !project.brief || !project.brief.discussions) return;
-  const item = project.brief.discussions[index];
-  item.done = !item.done;
-  item.checkedBy = item.done ? currentUser.name : null;
-  item.checkedAt = item.done ? new Date().toLocaleDateString('zh-TW') : null;
-  // 存到 Firestore
-  db.collection('board_discussions_state').doc(currentProject).set({
-    discussions: project.brief.discussions.map(d => ({
-      done: d.done,
-      checkedBy: d.checkedBy || null,
-      checkedAt: d.checkedAt || null
-    }))
+  const checked = !isMyVote(index);
+  const date = new Date().toLocaleDateString('zh-TW');
+
+  // 更新本地
+  if (!discussionVotes[index]) discussionVotes[index] = {};
+  discussionVotes[index][currentUser.name] = { checked, date };
+
+  // 存到 Firestore（每人每項一筆 doc）
+  const docId = `${currentProject}_${index}_${currentUser.name}`;
+  db.collection('board_discussion_votes').doc(docId).set({
+    project_id: currentProject,
+    index: index,
+    user: currentUser.name,
+    checked: checked,
+    date: date
   });
+
   renderBrief();
 }
 
