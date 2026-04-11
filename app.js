@@ -175,7 +175,7 @@ function renderBoard() {
   renderArchBanner(container);
 
   const archCollapsed = localStorage.getItem('vivi-board-arch-collapsed') === 'true';
-  const ARCH_OFFSET_Y = archCollapsed ? 60 : 220;
+  const ARCH_OFFSET_Y = archCollapsed ? 60 : 360;
 
   const positions = {};
   project.cards.forEach(card => {
