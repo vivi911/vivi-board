@@ -174,7 +174,8 @@ function renderBoard() {
   // 渲染白板頂部架構圖
   renderArchBanner(container);
 
-  const ARCH_OFFSET_Y = 220; // 架構圖高度，流程卡片往下推
+  const archCollapsed = localStorage.getItem('vivi-board-arch-collapsed') === 'true';
+  const ARCH_OFFSET_Y = archCollapsed ? 60 : 220;
 
   const positions = {};
   project.cards.forEach(card => {
@@ -731,12 +732,26 @@ function toggleDiscussion(index) {
 }
 
 // ===== 白板頂部架構圖 =====
+function toggleArch() {
+  const body = document.querySelector('.arch-banner-body');
+  const toggle = document.querySelector('.arch-banner-toggle');
+  const collapsed = !body.classList.contains('arch-collapsed');
+  body.classList.toggle('arch-collapsed');
+  toggle.textContent = collapsed ? '\u25B6 展開' : '\u25BC 收合';
+  localStorage.setItem('vivi-board-arch-collapsed', collapsed);
+  renderBoard();
+}
+
 function renderArchBanner(container) {
   const banner = document.createElement('div');
   banner.className = 'arch-banner';
+  const collapsed = localStorage.getItem('vivi-board-arch-collapsed') === 'true';
   banner.innerHTML = `
-    <div class="arch-banner-row arch-banner-sources">
+    <div class="arch-banner-header" onclick="toggleArch()">
       <div class="arch-banner-label">資料來源層 DATA SOURCES</div>
+      <span class="arch-banner-toggle">${collapsed ? '\u25B6 展開' : '\u25BC 收合'}</span>
+    </div>
+    <div class="arch-banner-body ${collapsed ? 'arch-collapsed' : ''}">`;
       <div class="arch-banner-boxes">
         <div class="arch-box">
           <div class="arch-box-title">鼎新公司</div>
@@ -775,25 +790,6 @@ function renderArchBanner(container) {
       <div class="arch-banner-emr-title">電子病歷 EMR</div>
       <div class="arch-banner-emr-sub">預約 \u2192 報到 \u2192 諮詢 \u2192 施作 \u2192 核銷 \u2192 追蹤</div>
     </div>
-    <div class="arch-banner-arrow">\u25BC\u25BC\u25BC</div>
-    <div class="arch-banner-row arch-banner-outputs">
-      <div class="arch-banner-boxes">
-        <div class="arch-output-box">
-          <div class="arch-output-box-icon">\u{1F4CA}</div>
-          <div class="arch-output-box-name">跨店報表</div>
-          <div class="arch-output-box-desc">營收統計 / 行銷歸因</div>
-        </div>
-        <div class="arch-output-box">
-          <div class="arch-output-box-icon">\u{1F4F1}</div>
-          <div class="arch-output-box-name">LINE 通知</div>
-          <div class="arch-output-box-desc">簡訊提醒 / 術後推播</div>
-        </div>
-        <div class="arch-output-box">
-          <div class="arch-output-box-icon">\u{1F512}</div>
-          <div class="arch-output-box-name">電子簽署</div>
-          <div class="arch-output-box-desc">同意書 / 衛教書</div>
-        </div>
-      </div>
     </div>
   `;
   container.appendChild(banner);
