@@ -55,6 +55,7 @@ async function showApp() {
   // 從 Firestore 載入資料（任一失敗不影響其他）
   await loadFromFirestore().catch(e => console.warn('載入卡片/留言失敗', e));
   await loadDecisions().catch(e => console.warn('載入決議失敗', e));
+  await loadDiscussionState().catch(e => console.warn('載入討論狀態失敗', e));
 
   // 載入第一個專案
   switchProject(Object.keys(PROJECTS)[0]);
@@ -632,6 +633,22 @@ function renderBrief() {
 
   document.getElementById('brief-content').innerHTML = html;
   renderDecisionsList();
+}
+
+async function loadDiscussionState() {
+  const projId = currentProject || Object.keys(PROJECTS)[0];
+  const doc = await db.collection('board_discussions_state').doc(projId).get();
+  if (doc.exists) {
+    const states = doc.data().discussions || [];
+    const project = PROJECTS[projId];
+    if (project && project.brief && project.brief.discussions) {
+      states.forEach((done, i) => {
+        if (i < project.brief.discussions.length) {
+          project.brief.discussions[i].done = done;
+        }
+      });
+    }
+  }
 }
 
 function toggleDiscussion(index) {
