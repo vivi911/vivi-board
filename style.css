@@ -342,18 +342,6 @@ body {
   min-width: 900px;
 }
 
-.arch-banner-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  padding-bottom: 8px;
-}
-
-.arch-banner-header:hover .arch-banner-toggle {
-  color: var(--gold);
-}
-
 .arch-banner-label {
   font-size: 11px;
   font-weight: 700;
@@ -361,12 +349,7 @@ body {
   letter-spacing: 1px;
   padding-left: 10px;
   border-left: 3px solid var(--gold);
-}
-
-.arch-banner-toggle {
-  font-size: 10px;
-  color: var(--text-muted);
-  transition: color 0.15s;
+  margin-bottom: 8px;
 }
 
 .arch-banner-body {
@@ -418,12 +401,18 @@ body {
   text-align: center;
 }
 
-.arch-banner-arrow {
+.arch-banner-collapse {
   text-align: center;
-  color: var(--border);
-  font-size: 14px;
-  padding: 6px 0;
-  letter-spacing: 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 8px 0;
+  cursor: pointer;
+  transition: color 0.15s;
+  letter-spacing: 1px;
+}
+
+.arch-banner-collapse:hover {
+  color: var(--gold);
 }
 
 .arch-banner-emr {

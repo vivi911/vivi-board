@@ -747,10 +747,7 @@ function renderArchBanner(container) {
   banner.className = 'arch-banner';
   const collapsed = localStorage.getItem('vivi-board-arch-collapsed') === 'true';
   banner.innerHTML = `
-    <div class="arch-banner-header" onclick="toggleArch()">
-      <div class="arch-banner-label">資料來源層 DATA SOURCES</div>
-      <span class="arch-banner-toggle">${collapsed ? '\u25B6 展開' : '\u25BC 收合'}</span>
-    </div>
+    <div class="arch-banner-label">資料來源層 DATA SOURCES</div>
     <div class="arch-banner-body ${collapsed ? 'arch-collapsed' : ''}">
       <div class="arch-banner-boxes">
         <div class="arch-box">
@@ -785,7 +782,9 @@ function renderArchBanner(container) {
         </div>
       </div>
     </div>
-    <div class="arch-banner-arrow">\u25BC\u25BC\u25BC</div>
+    <div class="arch-banner-collapse" onclick="toggleArch()">
+      ${collapsed ? '\u25B6 展開資料來源層' : '\u25BC 收合'}
+    </div>
     <div class="arch-banner-emr">
       <div class="arch-banner-emr-title">電子病歷 EMR</div>
       <div class="arch-banner-emr-sub">預約 \u2192 報到 \u2192 諮詢 \u2192 施作 \u2192 核銷 \u2192 追蹤</div>
