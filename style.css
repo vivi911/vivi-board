@@ -333,7 +333,110 @@ body {
   background: var(--gold-border);
 }
 
-/* 架構圖 */
+/* ===== 白板頂部架構圖橫幅 ===== */
+.arch-banner {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  right: 40px;
+  min-width: 900px;
+}
+
+.arch-banner-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  padding-left: 10px;
+  border-left: 3px solid var(--gold);
+}
+
+.arch-banner-boxes {
+  display: flex;
+  gap: 8px;
+}
+
+.arch-box {
+  flex: 1;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  min-width: 0;
+}
+
+.arch-box-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.arch-box-items {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.arch-box-items span {
+  font-size: 10px;
+  color: var(--text-secondary);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  padding: 3px 8px;
+  text-align: center;
+}
+
+.arch-banner-arrow {
+  text-align: center;
+  color: var(--border);
+  font-size: 14px;
+  padding: 6px 0;
+  letter-spacing: 8px;
+}
+
+.arch-banner-emr {
+  background: linear-gradient(135deg, rgba(168,135,74,0.08), rgba(168,135,74,0.03));
+  border: 2px solid rgba(168,135,74,0.3);
+  border-radius: 10px;
+  padding: 12px 20px;
+  text-align: center;
+}
+
+.arch-banner-emr-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.arch-banner-emr-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  letter-spacing: 1px;
+}
+
+.arch-banner-outputs .arch-banner-boxes {
+  justify-content: center;
+  gap: 12px;
+}
+
+.arch-output-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 20px;
+  text-align: center;
+  min-width: 140px;
+}
+
+.arch-output-box-icon { font-size: 20px; margin-bottom: 2px; }
+.arch-output-box-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.arch-output-box-desc { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+/* 左側面板架構圖（保留但不用） */
 .arch-label {
   font-size: 9px;
   font-weight: 700;

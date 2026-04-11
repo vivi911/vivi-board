@@ -171,10 +171,15 @@ function renderBoard() {
   container.innerHTML = '';
   svg.innerHTML = '';
 
+  // 渲染白板頂部架構圖
+  renderArchBanner(container);
+
+  const ARCH_OFFSET_Y = 220; // 架構圖高度，流程卡片往下推
+
   const positions = {};
   project.cards.forEach(card => {
     const x = OFFSET_X + card.col * GAP_X;
-    const y = OFFSET_Y + (card.row + 1.5) * GAP_Y;
+    const y = ARCH_OFFSET_Y + OFFSET_Y + (card.row + 1.5) * GAP_Y;
     positions[card.id] = { x, y };
   });
   positions_cache = positions;
@@ -527,57 +532,6 @@ function renderBrief() {
 
   let html = '';
 
-  // 系統架構總覽
-  html += `<div class="brief-section">
-    <div class="arch-label">系統架構總覽</div>
-    <div class="arch-sources">
-      <div class="arch-source">
-        <div class="arch-source-name">鼎新</div>
-        <div class="arch-source-item">ERP</div>
-        <div class="arch-source-item">POS</div>
-        <div class="arch-source-item">HRM</div>
-      </div>
-      <div class="arch-source">
-        <div class="arch-source-name">凱惠</div>
-        <div class="arch-source-item">POS</div>
-      </div>
-      <div class="arch-source">
-        <div class="arch-source-name">類神經</div>
-        <div class="arch-source-item">CRM</div>
-        <div class="arch-source-item">SalesChat</div>
-      </div>
-      <div class="arch-source">
-        <div class="arch-source-name">行銷</div>
-        <div class="arch-source-item">LINE OA</div>
-        <div class="arch-source-item">FB / IG</div>
-        <div class="arch-source-item">Ads</div>
-      </div>
-    </div>
-    <div class="arch-arrow">\u25BC \u25BC \u25BC</div>
-    <div class="arch-emr">
-      <div class="arch-emr-title">電子病歷 EMR</div>
-      <div class="arch-emr-sub">預約 \u2192 報到 \u2192 諮詢 \u2192 施作 \u2192 追蹤</div>
-    </div>
-    <div class="arch-arrow">\u25BC \u25BC \u25BC</div>
-    <div class="arch-outputs">
-      <div class="arch-output">
-        <div class="arch-output-icon">\u{1F4CA}</div>
-        <div class="arch-output-name">跨店報表</div>
-        <div class="arch-output-desc">營收 / 歸因</div>
-      </div>
-      <div class="arch-output">
-        <div class="arch-output-icon">\u{1F4F1}</div>
-        <div class="arch-output-name">LINE 通知</div>
-        <div class="arch-output-desc">簡訊 / 推播</div>
-      </div>
-      <div class="arch-output">
-        <div class="arch-output-icon">\u{1F512}</div>
-        <div class="arch-output-name">電子簽署</div>
-        <div class="arch-output-desc">同意書 / 衛教</div>
-      </div>
-    </div>
-  </div>`;
-
   // 狀態儀表板（自動統計）
   const counts = { confirmed: 0, discuss: 0, gap: 0 };
   project.cards.forEach(c => { if (counts[c.status] !== undefined) counts[c.status]++; });
@@ -774,6 +728,75 @@ function toggleDiscussion(index) {
   });
 
   renderBrief();
+}
+
+// ===== 白板頂部架構圖 =====
+function renderArchBanner(container) {
+  const banner = document.createElement('div');
+  banner.className = 'arch-banner';
+  banner.innerHTML = `
+    <div class="arch-banner-row arch-banner-sources">
+      <div class="arch-banner-label">資料來源層 DATA SOURCES</div>
+      <div class="arch-banner-boxes">
+        <div class="arch-box">
+          <div class="arch-box-title">鼎新公司</div>
+          <div class="arch-box-items">
+            <span>ERP</span><span>POS</span><span>HRM 人事</span><span>HRM 排班</span><span>BPM 電子表單</span><span>BI 系統</span>
+          </div>
+        </div>
+        <div class="arch-box">
+          <div class="arch-box-title">凱惠公司</div>
+          <div class="arch-box-items">
+            <span>POS 系統</span>
+          </div>
+        </div>
+        <div class="arch-box">
+          <div class="arch-box-title">鋒形公司</div>
+          <div class="arch-box-items">
+            <span>HRM 人事系統</span>
+          </div>
+        </div>
+        <div class="arch-box">
+          <div class="arch-box-title">類神經</div>
+          <div class="arch-box-items">
+            <span>CRM 系統</span><span>Sales Chat</span>
+          </div>
+        </div>
+        <div class="arch-box">
+          <div class="arch-box-title">行銷渠道</div>
+          <div class="arch-box-items">
+            <span>LINE OA</span><span>Facebook</span><span>Instagram</span><span>Google Ads</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="arch-banner-arrow">\u25BC\u25BC\u25BC</div>
+    <div class="arch-banner-emr">
+      <div class="arch-banner-emr-title">電子病歷 EMR</div>
+      <div class="arch-banner-emr-sub">預約 \u2192 報到 \u2192 諮詢 \u2192 施作 \u2192 核銷 \u2192 追蹤</div>
+    </div>
+    <div class="arch-banner-arrow">\u25BC\u25BC\u25BC</div>
+    <div class="arch-banner-row arch-banner-outputs">
+      <div class="arch-banner-boxes">
+        <div class="arch-output-box">
+          <div class="arch-output-box-icon">\u{1F4CA}</div>
+          <div class="arch-output-box-name">跨店報表</div>
+          <div class="arch-output-box-desc">營收統計 / 行銷歸因</div>
+        </div>
+        <div class="arch-output-box">
+          <div class="arch-output-box-icon">\u{1F4F1}</div>
+          <div class="arch-output-box-name">LINE 通知</div>
+          <div class="arch-output-box-desc">簡訊提醒 / 術後推播</div>
+        </div>
+        <div class="arch-output-box">
+          <div class="arch-output-box-icon">\u{1F512}</div>
+          <div class="arch-output-box-name">電子簽署</div>
+          <div class="arch-output-box-desc">同意書 / 衛教書</div>
+        </div>
+      </div>
+    </div>
+  `;
+  container.appendChild(banner);
 }
 
 // ===== 卡片位置載入 =====
