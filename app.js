@@ -184,17 +184,29 @@ function renderBoard() {
     el.onclick = () => openPanel(card.id);
 
     const commentCount = card.comments ? card.comments.length : 0;
-    const hasMockup = MOCKUPS && MOCKUPS[card.id];
+    const mockupData = card.mockup && MOCKUPS ? MOCKUPS[card.mockup] : null;
 
-    el.innerHTML = `
-      ${hasMockup ? `<div class="card-mockup-dot" onclick="event.stopPropagation(); showMockup('${card.id}')" title="查看示意畫面">\u{1F4F1}</div>` : ''}
-      <div class="card-category">${card.category}</div>
-      <div class="card-title">${card.title}</div>
-      <div class="card-footer">
-        <span class="card-status status-${card.status}">${statusLabel(card.status)}</span>
-        <span class="card-comments">\u{1F4AC} ${commentCount}</span>
-      </div>
-    `;
+    if (mockupData) {
+      // 示意畫面卡片：寬版，嵌入 mockup HTML
+      el.className = `card-mockup-embed status-${card.status}-bar`;
+      el.style.width = '500px';
+      el.innerHTML = `
+        <div class="card-mockup-label">${card.category}</div>
+        <div class="card-mockup-title">${card.title}</div>
+        ${mockupData.html}
+      `;
+      el.onclick = () => openPanel(card.id);
+    } else {
+      const commentCount = card.comments ? card.comments.length : 0;
+      el.innerHTML = `
+        <div class="card-category">${card.category}</div>
+        <div class="card-title">${card.title}</div>
+        <div class="card-footer">
+          <span class="card-status status-${card.status}">${statusLabel(card.status)}</span>
+          <span class="card-comments">\u{1F4AC} ${commentCount}</span>
+        </div>
+      `;
+    }
     container.appendChild(el);
   });
 
@@ -208,7 +220,11 @@ function renderBoard() {
       const to = positions[nextId];
       if (!to) return;
 
-      const x1 = from.x + CARD_W;
+      const fromCard = project.cards.find(c => c.id === card.id);
+      const toCard = project.cards.find(c => c.id === nextId);
+      const fromW = (fromCard && fromCard.mockup) ? 500 : CARD_W;
+      const toW = (toCard && toCard.mockup) ? 500 : CARD_W;
+      const x1 = from.x + fromW;
       const y1 = from.y + CARD_H / 2;
       const x2 = to.x;
       const y2 = to.y + CARD_H / 2;

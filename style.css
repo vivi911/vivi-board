@@ -706,101 +706,284 @@ body {
   padding: 1px 0;
 }
 
-/* ===== 卡片上的示意畫面提示 ===== */
-.card-mockup-dot {
+/* ===== 嵌入式示意畫面卡片 ===== */
+.card-mockup-embed {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 24px;
-  height: 24px;
-  background: var(--gold);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(168, 135, 74, 0.4);
-  transition: transform 0.15s;
-  z-index: 5;
-}
-
-.card-mockup-dot:hover {
-  transform: scale(1.2);
-}
-
-/* ===== Mockup Overlay ===== */
-#mockup-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mockup-backdrop {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.4);
-}
-
-.mockup-panel {
-  position: relative;
   background: var(--bg-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  max-width: 480px;
-  width: 90%;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+  user-select: none;
   overflow: hidden;
 }
 
-.mockup-panel-header {
+.card-mockup-embed:hover {
+  border-color: var(--gold-border);
+  box-shadow: var(--shadow-md);
+}
+
+.card-mockup-embed::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+}
+
+.card-mockup-embed.status-discuss-bar::before { background: var(--yellow); }
+.card-mockup-embed.status-confirmed-bar::before { background: var(--green); }
+
+.card-mockup-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.card-mockup-embed.status-discuss-bar .card-mockup-label { color: var(--yellow); }
+.card-mockup-embed.status-confirmed-bar .card-mockup-label { color: var(--green); }
+
+.card-mockup-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+/* ===== GSheet 風格表格 ===== */
+.mock-spreadsheet {
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 10px;
+}
+
+.mock-spreadsheet.before {
+  border: 1px solid #dadce0;
+}
+
+.mock-spreadsheet.after {
+  border: 1px solid var(--green-border);
+}
+
+.mock-sheet-header {
+  background: #188038;
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.mock-sheet-icon {
+  margin-right: 4px;
+}
+
+.mock-sheet-toolbar {
+  background: #f1f3f4;
+  padding: 3px 10px;
+  display: flex;
+  gap: 10px;
+  font-size: 9px;
+  color: #5f6368;
+  border-bottom: 1px solid #dadce0;
+}
+
+.mock-sheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9px;
+}
+
+.mock-sheet-table th {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  padding: 3px 5px;
+  font-weight: 600;
+  color: #5f6368;
+  text-align: left;
+  white-space: nowrap;
+  font-size: 8px;
+}
+
+.mock-sheet-table td {
+  border: 1px solid #e0e0e0;
+  padding: 3px 5px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+.col-narrow { width: 20px; text-align: center; color: #999; }
+
+.mock-editor-tag {
+  display: inline-block;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 8px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.mock-editor-tag.km { background: #e91e63; }
+.mock-editor-tag.nm { background: #9c27b0; }
+.mock-editor-tag.tt { background: #ff9800; }
+.mock-editor-tag.ada { background: #4caf50; }
+.mock-editor-tag.fb { background: #1877f2; }
+.mock-editor-tag.line { background: #06c755; }
+.mock-editor-tag.ig { background: #e4405f; }
+
+.mock-store, .mock-store-emr {
+  font-size: 8px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.mock-store.zx, .mock-store-emr.zx { background: #e8f5e9; color: #2e7d32; }
+.mock-store.zx3, .mock-store-emr.zx3 { background: #e3f2fd; color: #1565c0; }
+
+.mock-arrive {
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+.mock-sheet-problems {
+  padding: 6px 10px;
+  background: #fff8e1;
+  border-top: 1px solid #dadce0;
+}
+
+.mock-problem {
+  font-size: 9px;
+  color: #e65100;
+  padding: 1px 0;
+}
+
+/* ===== EMR 風格表格 ===== */
+.mock-emr-header {
+  background: var(--text-primary);
+  color: #fff;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 600;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 20px;
+}
+
+.mock-emr-nav {
+  background: rgba(255,255,255,0.15);
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 9px;
+}
+
+.mock-emr-user {
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.mock-emr-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  background: var(--bg-elevated);
   border-bottom: 1px solid var(--border);
 }
 
-.mockup-panel-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.mockup-close {
-  background: none;
+.mock-emr-btn-add {
+  background: var(--text-primary);
+  color: #fff;
   border: none;
-  font-size: 22px;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 0 4px;
+  padding: 3px 10px;
   border-radius: 4px;
-  line-height: 1;
+  font-size: 9px;
+  font-weight: 600;
+  cursor: default;
 }
 
-.mockup-close:hover {
-  color: var(--text-primary);
+.mock-emr-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.mock-emr-filter {
+  font-size: 8px;
+  color: var(--text-secondary);
+}
+
+.mock-sheet-table.emr th {
   background: var(--bg-canvas);
+  border-color: var(--border);
+  color: var(--text-secondary);
 }
 
-.mockup-panel-body {
-  padding: 20px;
-  overflow-y: auto;
-  flex: 1;
+.mock-sheet-table.emr td {
+  border-color: var(--border-light);
 }
 
-/* ===== 示意畫面 Mockup 元件 ===== */
+.mock-auto-tag {
+  font-size: 8px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid var(--green-border);
+}
+
+.mock-platform {
+  font-size: 7px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.mock-platform.fb { background: #1877f2; }
+.mock-platform.line { background: #06c755; }
+.mock-platform.ig { background: #e4405f; }
+
+.mock-dropdown-tag {
+  font-size: 8px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--gold-light);
+  color: var(--gold);
+  border: 1px solid var(--gold-border);
+}
+
+.mock-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.mock-status-dot.green { background: var(--green); }
+.mock-status-dot.yellow { background: var(--yellow); }
+.mock-status-dot.gray { background: var(--text-muted); }
+
+.mock-sheet-improvements {
+  padding: 6px 10px;
+  background: var(--green-bg);
+  border-top: 1px solid var(--green-border);
+}
+
+.mock-improve {
+  font-size: 9px;
+  color: var(--green);
+  padding: 1px 0;
+}
+
+/* ===== 示意畫面 Mockup 元件（保留給未來用） ===== */
 
 .mock-phone {
   background: #fff;

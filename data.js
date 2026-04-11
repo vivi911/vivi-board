@@ -152,7 +152,7 @@ const PROJECTS = {
         title: "邀約（小編接客）",
         status: "confirmed",
         col: 2, row: 0,
-        next: ["flow2"],
+        next: ["flow2", "flow1-before"],
         content: `現況：小編從 Meta/LINE/電話接預約 → 手動填 Google Sheet + 凱惠（雙重輸入）
 小編需即時看凱惠房間/時段表跟客人喬時間 → 凱惠操作不動
 
@@ -416,6 +416,36 @@ BA照片流程：
         status: "confirmed",
         col: 13, row: 0,
         next: [],
+        content: `對應紙本「追蹤記錄單」
+術後追蹤紀錄電子化
+追蹤時間點、客戶反饋、恢復狀況`,
+        comments: []
+      },
+      // ===== 邀約 Before / After 示意 =====
+      {
+        id: "flow1-before",
+        category: "BEFORE",
+        title: "現況：Google Sheet",
+        status: "discuss",
+        col: 2, row: 2,
+        next: ["flow1-after"],
+        mockup: "flow1-before",
+        content: `現況痛點：
+- 小編手動填 Google Sheet + 凱惠雙重輸入
+- 欄位不統一，每個小編填法不同
+- 行銷歸因靠人工填寫，常漏填
+- 無法即時看凱惠房間/時段
+- 資料散落在多個 Sheet 分頁`,
+        comments: []
+      },
+      {
+        id: "flow1-after",
+        category: "AFTER",
+        title: "電子病歷：邀約表",
+        status: "confirmed",
+        col: 4, row: 2,
+        next: [],
+        mockup: "flow1-after",
         content: `對應紙本「追蹤記錄單」
 術後追蹤紀錄電子化
 追蹤時間點、客戶反饋、恢復狀況
