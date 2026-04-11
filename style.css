@@ -273,7 +273,11 @@ body {
 }
 
 #brief-panel.collapsed {
-  transform: translateX(-320px);
+  transform: translateX(calc(-100% + 0px));
+}
+
+#brief-panel.collapsed .brief-toggle {
+  right: -28px;
 }
 
 .brief-toggle {

@@ -930,10 +930,17 @@ function toggleBrief() {
   const panel = document.getElementById('brief-panel');
   const board = document.getElementById('board-container');
   const toggle = panel.querySelector('.brief-toggle');
+  const isCollapsing = !panel.classList.contains('collapsed');
 
   panel.classList.toggle('collapsed');
-  board.classList.toggle('brief-collapsed');
-  toggle.textContent = panel.classList.contains('collapsed') ? '\u25B6' : '\u25C0';
+
+  if (isCollapsing) {
+    board.style.left = '0px';
+  } else {
+    board.style.left = (panel.style.width || '320px');
+  }
+
+  toggle.textContent = isCollapsing ? '\u25B6' : '\u25C0';
 }
 
 // ===== 左側面板寬度調整 =====
