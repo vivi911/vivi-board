@@ -184,8 +184,10 @@ function renderBoard() {
     el.onclick = () => openPanel(card.id);
 
     const commentCount = card.comments ? card.comments.length : 0;
+    const hasMockup = MOCKUPS && MOCKUPS[card.id];
 
     el.innerHTML = `
+      ${hasMockup ? `<div class="card-mockup-dot" onclick="event.stopPropagation(); showMockup('${card.id}')" title="查看示意畫面">\u{1F4F1}</div>` : ''}
       <div class="card-category">${card.category}</div>
       <div class="card-title">${card.title}</div>
       <div class="card-footer">
@@ -402,6 +404,7 @@ document.addEventListener('keydown', (e) => {
     addDecision();
   }
   if (e.key === 'Escape') {
+    closeMockup();
     closePanel();
   }
 });
@@ -690,6 +693,36 @@ function toggleDiscussion(index) {
   });
 
   renderBrief();
+}
+
+// ===== 示意畫面 Mockup =====
+function showMockup(cardId) {
+  const mockup = MOCKUPS[cardId];
+  if (!mockup) return;
+
+  // 移除舊的 overlay
+  closeMockup();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'mockup-overlay';
+  overlay.innerHTML = `
+    <div class="mockup-backdrop" onclick="closeMockup()"></div>
+    <div class="mockup-panel">
+      <div class="mockup-panel-header">
+        <span class="mockup-panel-title">${mockup.title}</span>
+        <button class="mockup-close" onclick="closeMockup()">\u00D7</button>
+      </div>
+      <div class="mockup-panel-body">
+        ${mockup.html}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function closeMockup() {
+  const overlay = document.getElementById('mockup-overlay');
+  if (overlay) overlay.remove();
 }
 
 function toggleBrief() {
