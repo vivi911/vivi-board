@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>左側面板 - 架構圖預覽</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans TC', -apple-system, sans-serif; background: #F7F5F2; display: flex; justify-content: center; padding: 40px; }
+  .panel { width: 320px; background: #fff; border: 1px solid #E8E5E0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .panel-title { padding: 16px 20px 8px; font-size: 10px; font-weight: 700; color: #A5A19C; letter-spacing: 1px; border-bottom: 1px solid #F0EDEA; text-transform: uppercase; }
+
+  /* 架構圖區塊 */
+  .arch-section { padding: 14px 16px; }
+  .arch-label { font-size: 9px; font-weight: 700; color: #A8874A; letter-spacing: 0.8px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .arch-label::before { content: ''; width: 3px; height: 12px; background: #A8874A; border-radius: 2px; }
+
+  .arch-sources { display: flex; gap: 6px; margin-bottom: 10px; }
+  .arch-source { flex: 1; background: #FAFAF8; border: 1px solid #E8E5E0; border-radius: 6px; padding: 6px 4px; text-align: center; }
+  .arch-source-name { font-size: 8px; font-weight: 600; color: #6E6B66; margin-bottom: 4px; }
+  .arch-source-items { display: flex; flex-direction: column; gap: 2px; }
+  .arch-source-item { font-size: 7px; color: #A5A19C; background: #fff; border: 1px solid #F0EDEA; border-radius: 3px; padding: 2px 4px; }
+
+  .arch-arrow { text-align: center; color: #C8C3BC; font-size: 10px; padding: 4px 0; letter-spacing: 2px; }
+
+  .arch-emr { background: linear-gradient(135deg, #A8874A10, #A8874A08); border: 2px solid #A8874A40; border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 10px; }
+  .arch-emr-title { font-size: 12px; font-weight: 700; color: #A8874A; }
+  .arch-emr-sub { font-size: 9px; color: #6E6B66; margin-top: 2px; }
+
+  .arch-outputs { display: flex; gap: 6px; }
+  .arch-output { flex: 1; background: #1A191810; border: 1px solid #E8E5E0; border-radius: 6px; padding: 6px; text-align: center; }
+  .arch-output-icon { font-size: 14px; margin-bottom: 2px; }
+  .arch-output-name { font-size: 8px; font-weight: 600; color: #3D3B38; }
+  .arch-output-desc { font-size: 7px; color: #A5A19C; }
+
+  /* 分隔 */
+  .divider { border-top: 1px solid #F0EDEA; margin: 0; }
+
+  /* 其他區塊模擬 */
+  .section { padding: 14px 16px; }
+  .section-title { font-size: 10px; font-weight: 700; color: #A5A19C; letter-spacing: 1px; margin-bottom: 8px; }
+  .placeholder { background: #FAFAF8; border: 1px dashed #E8E5E0; border-radius: 6px; padding: 12px; text-align: center; color: #C8C3BC; font-size: 10px; }
+
+  .stats { display: flex; gap: 6px; margin-bottom: 4px; }
+  .stat { flex: 1; text-align: center; padding: 8px 4px; border-radius: 6px; border: 1px solid #E8E5E0; }
+  .stat-num { font-size: 18px; font-weight: 700; }
+  .stat-label { font-size: 8px; font-weight: 600; margin-top: 2px; }
+  .stat.green { background: rgba(58,138,64,0.08); border-color: rgba(58,138,64,0.2); }
+  .stat.green .stat-num, .stat.green .stat-label { color: #3A8A40; }
+  .stat.yellow { background: rgba(196,170,106,0.1); border-color: rgba(196,170,106,0.25); }
+  .stat.yellow .stat-num, .stat.yellow .stat-label { color: #C4AA6A; }
+  .stat.red { background: rgba(184,50,48,0.08); border-color: rgba(184,50,48,0.2); }
+  .stat.red .stat-num, .stat.red .stat-label { color: #B83230; }
+
+  .annotation { margin-top: 20px; padding: 10px 16px; background: #fff8e1; border: 1px dashed #C4AA6A; border-radius: 8px; font-size: 11px; color: #6E6B66; line-height: 1.8; }
+  .annotation strong { color: #A8874A; }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="panel">
+    <!-- 架構總覽（新增的） -->
+    <div class="arch-section">
+      <div class="arch-label">系統架構總覽</div>
+
+      <div class="arch-sources">
+        <div class="arch-source">
+          <div class="arch-source-name">鼎新</div>
+          <div class="arch-source-items">
+            <div class="arch-source-item">ERP</div>
+            <div class="arch-source-item">POS</div>
+            <div class="arch-source-item">HRM</div>
+          </div>
+        </div>
+        <div class="arch-source">
+          <div class="arch-source-name">凱惠</div>
+          <div class="arch-source-items">
+            <div class="arch-source-item">POS</div>
+          </div>
+        </div>
+        <div class="arch-source">
+          <div class="arch-source-name">類神經</div>
+          <div class="arch-source-items">
+            <div class="arch-source-item">CRM</div>
+            <div class="arch-source-item">SalesChat</div>
+          </div>
+        </div>
+        <div class="arch-source">
+          <div class="arch-source-name">行銷</div>
+          <div class="arch-source-items">
+            <div class="arch-source-item">LINE OA</div>
+            <div class="arch-source-item">FB / IG</div>
+            <div class="arch-source-item">Ads</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arch-arrow">\u25BC \u25BC \u25BC</div>
+
+      <div class="arch-emr">
+        <div class="arch-emr-title">電子病歷 EMR</div>
+        <div class="arch-emr-sub">預約 \u2192 報到 \u2192 諮詢 \u2192 施作 \u2192 追蹤</div>
+      </div>
+
+      <div class="arch-arrow">\u25BC \u25BC \u25BC</div>
+
+      <div class="arch-outputs">
+        <div class="arch-output">
+          <div class="arch-output-icon">\u{1F4CA}</div>
+          <div class="arch-output-name">跨店報表</div>
+          <div class="arch-output-desc">營收 / 歸因</div>
+        </div>
+        <div class="arch-output">
+          <div class="arch-output-icon">\u{1F4F1}</div>
+          <div class="arch-output-name">LINE 通知</div>
+          <div class="arch-output-desc">簡訊 / 推播</div>
+        </div>
+        <div class="arch-output">
+          <div class="arch-output-icon">\u{1F512}</div>
+          <div class="arch-output-name">電子簽署</div>
+          <div class="arch-output-desc">同意書 / 衛教</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 進度總覽 -->
+    <div class="section">
+      <div class="section-title">進度總覽</div>
+      <div class="stats">
+        <div class="stat green"><div class="stat-num">11</div><div class="stat-label">已確認</div></div>
+        <div class="stat yellow"><div class="stat-num">5</div><div class="stat-label">待討論</div></div>
+        <div class="stat red"><div class="stat-num">2</div><div class="stat-label">API缺口</div></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 決議紀錄 -->
+    <div class="section">
+      <div class="section-title">決議紀錄</div>
+      <div class="placeholder">尚無決議紀錄</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 專案背景 -->
+    <div class="section">
+      <div class="section-title">專案背景</div>
+      <div class="placeholder">美力時尚醫美目前以紙本病歷為主...</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+      <div class="section-title">現況痛點</div>
+      <div class="placeholder">（紅色邊線的痛點清單）</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section">
+      <div class="section-title">... 以下同現有面板 ...</div>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <strong>說明：</strong><br>
+    最上面新增「系統架構總覽」區塊<br>
+    上層 = 現有系統（資料從哪來）<br>
+    中間 = 電子病歷（這個專案）<br>
+    下層 = 產出（報表/通知/簽署）<br>
+    <br>
+    白板上的「系統架構」「資料來源層」兩張卡片就可以移除，<br>
+    流程直接從「邀約」開始。
+  </div>
+</div>
+
+</body>
+</html>

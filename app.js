@@ -527,6 +527,57 @@ function renderBrief() {
 
   let html = '';
 
+  // 系統架構總覽
+  html += `<div class="brief-section">
+    <div class="arch-label">系統架構總覽</div>
+    <div class="arch-sources">
+      <div class="arch-source">
+        <div class="arch-source-name">鼎新</div>
+        <div class="arch-source-item">ERP</div>
+        <div class="arch-source-item">POS</div>
+        <div class="arch-source-item">HRM</div>
+      </div>
+      <div class="arch-source">
+        <div class="arch-source-name">凱惠</div>
+        <div class="arch-source-item">POS</div>
+      </div>
+      <div class="arch-source">
+        <div class="arch-source-name">類神經</div>
+        <div class="arch-source-item">CRM</div>
+        <div class="arch-source-item">SalesChat</div>
+      </div>
+      <div class="arch-source">
+        <div class="arch-source-name">行銷</div>
+        <div class="arch-source-item">LINE OA</div>
+        <div class="arch-source-item">FB / IG</div>
+        <div class="arch-source-item">Ads</div>
+      </div>
+    </div>
+    <div class="arch-arrow">\u25BC \u25BC \u25BC</div>
+    <div class="arch-emr">
+      <div class="arch-emr-title">電子病歷 EMR</div>
+      <div class="arch-emr-sub">預約 \u2192 報到 \u2192 諮詢 \u2192 施作 \u2192 追蹤</div>
+    </div>
+    <div class="arch-arrow">\u25BC \u25BC \u25BC</div>
+    <div class="arch-outputs">
+      <div class="arch-output">
+        <div class="arch-output-icon">\u{1F4CA}</div>
+        <div class="arch-output-name">跨店報表</div>
+        <div class="arch-output-desc">營收 / 歸因</div>
+      </div>
+      <div class="arch-output">
+        <div class="arch-output-icon">\u{1F4F1}</div>
+        <div class="arch-output-name">LINE 通知</div>
+        <div class="arch-output-desc">簡訊 / 推播</div>
+      </div>
+      <div class="arch-output">
+        <div class="arch-output-icon">\u{1F512}</div>
+        <div class="arch-output-name">電子簽署</div>
+        <div class="arch-output-desc">同意書 / 衛教</div>
+      </div>
+    </div>
+  </div>`;
+
   // 狀態儀表板（自動統計）
   const counts = { confirmed: 0, discuss: 0, gap: 0 };
   project.cards.forEach(c => { if (counts[c.status] !== undefined) counts[c.status]++; });
@@ -884,6 +935,45 @@ function toggleBrief() {
   board.classList.toggle('brief-collapsed');
   toggle.textContent = panel.classList.contains('collapsed') ? '\u25B6' : '\u25C0';
 }
+
+// ===== 左側面板寬度調整 =====
+(function initResizer() {
+  const resizer = document.getElementById('brief-resizer');
+  if (!resizer) return;
+  const panel = document.getElementById('brief-panel');
+  const board = document.getElementById('board-container');
+  let startX, startW;
+
+  resizer.addEventListener('mousedown', (e) => {
+    startX = e.clientX;
+    startW = panel.offsetWidth;
+    resizer.classList.add('dragging');
+
+    const onMove = (e2) => {
+      const newW = Math.max(200, Math.min(600, startW + e2.clientX - startX));
+      panel.style.width = newW + 'px';
+      board.style.left = newW + 'px';
+    };
+
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      resizer.classList.remove('dragging');
+      localStorage.setItem('vivi-board-panel-width', panel.style.width);
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    e.preventDefault();
+  });
+
+  // 載入上次寬度
+  const saved = localStorage.getItem('vivi-board-panel-width');
+  if (saved) {
+    panel.style.width = saved;
+    board.style.left = saved;
+  }
+})();
 
 // ===== 初始化 =====
 (function init() {

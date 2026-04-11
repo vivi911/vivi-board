@@ -116,42 +116,11 @@ const PROJECTS = {
     // ===== 白板只留主流程卡片 =====
     cards: [
       {
-        id: "overview",
-        category: "總覽",
-        title: "系統架構",
-        status: "confirmed",
-        col: 0, row: 0,
-        next: ["datasources"],
-        content: `專案目標：紙本病歷全面電子化
-外包廠商：采盟（Sam）
-部署環境：美力自有 GCP
-主要串接：凱惠 POS
-資料入口：類神經 SalesChat
-背景系統：鼎新 ERP
-據點：站前4F / 站前11F / 忠孝7F(7FA) / 忠孝健康7F(7FB)`,
-        comments: []
-      },
-      {
-        id: "datasources",
-        category: "總覽",
-        title: "資料來源層",
-        status: "confirmed",
-        col: 1, row: 0,
-        next: ["flow1"],
-        content: `鼎新：ERP、POS、HRM人事、HRM排班、BPM電子表單、IMG、IMG行動考勤、BI系統
-凱惠：POS系統（主要串接對象）
-鋒形：HRM人事系統
-類神經：CRM系統、Sales Chat（客人邀約入口）
-行銷渠道：LINE OA、Facebook、Instagram、Google Ads
-底層：ETL 整合（母公司中台架構）`,
-        comments: []
-      },
-      {
         id: "flow1",
         category: "流程1",
         title: "邀約（小編接客）",
         status: "confirmed",
-        col: 2, row: 0,
+        col: 0, row: 0,
         next: ["flow2", "flow1-before"],
         content: `現況：小編從 Meta/LINE/電話接預約 → 手動填 Google Sheet + 凱惠（雙重輸入）
 小編需即時看凱惠房間/時段表跟客人喬時間 → 凱惠操作不動
@@ -177,7 +146,7 @@ const PROJECTS = {
         category: "流程2",
         title: "簡訊通知 & 確認報到",
         status: "discuss",
-        col: 3, row: 0,
+        col: 1, row: 0,
         next: ["flow3"],
         content: `現況：凱惠串簡訊系統，前一天發純文字簡訊通知客人
 
@@ -195,7 +164,7 @@ const PROJECTS = {
         category: "流程3",
         title: "到店掃碼報到",
         status: "confirmed",
-        col: 4, row: 0,
+        col: 2, row: 0,
         next: ["flow3a", "flow3b"],
         content: `電子病歷 為每筆預約產生唯一 QR code
 客人到店掃碼 → 電子病歷 收到報到事件
@@ -214,7 +183,7 @@ const PROJECTS = {
         category: "流程3a",
         title: "新客：填寫基本資料",
         status: "confirmed",
-        col: 5, row: -0.5,
+        col: 3, row: -0.5,
         next: ["flow4"],
         content: `掃碼報到 + 綁 LINE OA 後，手機上直接填寫
 對應紙本「貴賓基本資料」表所有欄位電子化
@@ -233,7 +202,7 @@ const PROJECTS = {
         category: "流程3b",
         title: "舊客：確認資料",
         status: "confirmed",
-        col: 5, row: 0.5,
+        col: 3, row: 0.5,
         next: ["flow4"],
         content: `掃碼報到時，用手機號碼查凱惠（API #1）找到既有資料
 顯示「歡迎回來 XXX，請確認您的資料是否正確」
@@ -248,7 +217,7 @@ const PROJECTS = {
         category: "流程4",
         title: "控場派工",
         status: "discuss",
-        col: 6, row: 0,
+        col: 4, row: 0,
         next: ["flow5"],
         content: `控場在 電子病歷 看當日報到清單 + 報到狀態
 → 指派諮詢師（確定）+ 指派美容師
@@ -266,7 +235,7 @@ const PROJECTS = {
         category: "流程5",
         title: "諮詢師作業",
         status: "confirmed",
-        col: 7, row: 0,
+        col: 5, row: 0,
         next: ["flow5a", "flow6"],
         content: `諮詢師在 電子病歷 看被指派的客戶清單
 1. 填寫諮詢紀錄
@@ -286,7 +255,7 @@ BA照片流程：
         category: "流程5a",
         title: "初診評估（臉部/體型）",
         status: "confirmed",
-        col: 8, row: -0.5,
+        col: 6, row: -0.5,
         next: [],
         content: `對應紙本「初診第一次全面評估規劃」
 
@@ -308,7 +277,7 @@ BA照片流程：
         category: "流程6",
         title: "消費結帳",
         status: "gap",
-        col: 8, row: 0.5,
+        col: 6, row: 0.5,
         next: ["flow7"],
         content: `消費單在凱惠 POS 建立（維持不動）
 凱惠產生消費單號 + 同時產生耗療項目
@@ -326,7 +295,7 @@ BA照片流程：
         category: "流程7",
         title: "施作前：同意書簽署",
         status: "discuss",
-        col: 9, row: 0,
+        col: 7, row: 0,
         next: ["flow8"],
         content: `客戶在施作前簽署手術同意書
 各療程有不同版本：音波拉皮、阿爾發凍脂、肉毒、填充等
@@ -351,7 +320,7 @@ BA照片流程：
         category: "流程8",
         title: "醫師施作 & 療程紀錄",
         status: "discuss",
-        col: 10, row: 0,
+        col: 8, row: 0,
         next: ["flow9"],
         content: `醫師在 電子病歷 看被指派的客戶清單
 美容師添加更新客戶進度
@@ -378,7 +347,7 @@ BA照片流程：
         category: "流程9",
         title: "耗療核銷",
         status: "gap",
-        col: 11, row: 0,
+        col: 9, row: 0,
         next: ["flow10"],
         content: `消費單在凱惠 POS 產生 → 同時產生耗療項目
 
@@ -399,7 +368,7 @@ BA照片流程：
         category: "流程10",
         title: "施作後：衛教書簽署",
         status: "confirmed",
-        col: 12, row: 0,
+        col: 10, row: 0,
         next: ["flow11"],
         content: `施作完成後，客戶簽署衛教書
 確認客人已了解術後注意事項
@@ -414,7 +383,7 @@ BA照片流程：
         category: "流程11",
         title: "術後追蹤",
         status: "confirmed",
-        col: 13, row: 0,
+        col: 11, row: 0,
         next: [],
         content: `對應紙本「追蹤記錄單」
 術後追蹤紀錄電子化
@@ -427,7 +396,7 @@ BA照片流程：
         category: "BEFORE",
         title: "現況：Google Sheet",
         status: "discuss",
-        col: 2, row: 2,
+        col: 0, row: 2,
         next: ["flow1-after"],
         mockup: "flow1-before",
         content: `現況痛點：
@@ -443,7 +412,7 @@ BA照片流程：
         category: "AFTER",
         title: "電子病歷：邀約表",
         status: "confirmed",
-        col: 4, row: 2,
+        col: 2, row: 2,
         next: [],
         mockup: "flow1-after",
         content: `對應紙本「追蹤記錄單」
