@@ -582,8 +582,66 @@ function renderBrief() {
     `).join('')}
   </div>`;
 
+  // 凱惠 API 狀態表
+  if (b.apis) {
+    html += `<div class="brief-section">
+      <div class="brief-section-title">凱惠 API 狀態</div>
+      <table class="brief-api-table">
+        <thead><tr><th></th><th>API</th><th>說明</th></tr></thead>
+        <tbody>
+        ${b.apis.existing.map(a => `
+          <tr class="api-ok"><td>\u2705</td><td>${escapeHtml(a.id + ' ' + a.name)}</td><td>${escapeHtml(a.desc)}</td></tr>
+        `).join('')}
+        ${b.apis.gaps.map(a => `
+          <tr class="api-gap"><td>\u274C</td><td>${escapeHtml(a.name)}</td><td>${escapeHtml(a.desc)}<span class="api-phase">${escapeHtml(a.phase)}</span></td></tr>
+        `).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  // 待討論事項 checklist
+  if (b.discussions) {
+    html += `<div class="brief-section">
+      <div class="brief-section-title">待討論事項 <span class="brief-count">${b.discussions.filter(d=>!d.done).length} 項</span></div>
+      <div class="brief-checklist">
+        ${b.discussions.map((d, i) => `
+          <label class="brief-check-item ${d.done ? 'done' : ''}">
+            <input type="checkbox" ${d.done ? 'checked' : ''} onchange="toggleDiscussion(${i})">
+            <span>${escapeHtml(d.text)}</span>
+          </label>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+
+  // 基礎設施
+  if (b.infrastructure) {
+    html += `<div class="brief-section">
+      <div class="brief-section-title">基礎設施規劃</div>
+      ${b.infrastructure.map(inf => `
+        <div class="brief-infra">
+          <div class="brief-infra-title">${escapeHtml(inf.title)}</div>
+          <ul class="brief-infra-list">
+            ${inf.items.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+          </ul>
+        </div>
+      `).join('')}
+    </div>`;
+  }
+
   document.getElementById('brief-content').innerHTML = html;
   renderDecisionsList();
+}
+
+function toggleDiscussion(index) {
+  const project = PROJECTS[currentProject];
+  if (!project || !project.brief || !project.brief.discussions) return;
+  project.brief.discussions[index].done = !project.brief.discussions[index].done;
+  // 存到 Firestore
+  db.collection('board_discussions_state').doc(currentProject).set({
+    discussions: project.brief.discussions.map(d => d.done)
+  });
 }
 
 function toggleBrief() {

@@ -570,6 +570,108 @@ body {
   padding: 12px;
 }
 
+/* API 狀態表 */
+.brief-api-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.brief-api-table th {
+  text-align: left;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brief-api-table td {
+  padding: 5px 6px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-body);
+  line-height: 1.4;
+}
+
+.brief-api-table tr.api-ok td:first-child { color: var(--green); }
+.brief-api-table tr.api-gap td:first-child { color: var(--red); }
+.brief-api-table tr.api-gap td { color: var(--red); }
+
+.api-phase {
+  display: inline-block;
+  font-size: 9px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-left: 4px;
+  color: var(--text-muted);
+}
+
+/* 待討論 checklist */
+.brief-count {
+  font-weight: 400;
+  color: var(--yellow);
+  font-size: 10px;
+}
+
+.brief-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brief-check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 12px;
+  color: var(--text-body);
+  cursor: pointer;
+  line-height: 1.5;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.brief-check-item:last-child { border-bottom: none; }
+
+.brief-check-item input[type="checkbox"] {
+  margin-top: 3px;
+  accent-color: var(--gold);
+  flex-shrink: 0;
+}
+
+.brief-check-item.done span {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* 基礎設施 */
+.brief-infra {
+  margin-bottom: 12px;
+}
+
+.brief-infra-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  padding-left: 8px;
+  border-left: 3px solid var(--gold);
+}
+
+.brief-infra-list {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.brief-infra-list li {
+  font-size: 11px;
+  color: var(--text-body);
+  line-height: 1.7;
+  padding: 1px 0;
+}
+
 /* ===== 白板區域 ===== */
 #board-container {
   position: fixed;

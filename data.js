@@ -1,5 +1,4 @@
 // ===== 專案資料 =====
-// 每個專案一份，切換專案就換資料
 
 const PROJECTS = {
   "meili-emr": {
@@ -38,8 +37,83 @@ const PROJECTS = {
         { id: "P4", name: "耗療核銷", status: "blocked", note: "等凱惠新 API" },
         { id: "P5", name: "電子同意書", status: "blocked", note: "等簽署廠商" },
         { id: "P6", name: "醫囑+進階功能", status: "planned" }
+      ],
+      // ===== 以下原本在白板的非流程卡片，改成結構化資料 =====
+      apis: {
+        existing: [
+          { id: "#1", name: "Read_客戶資料", desc: "手機號碼查新舊客" },
+          { id: "#2", name: "Create_客戶資料", desc: "快速建檔新客（姓名+手機+館別）" },
+          { id: "#3", name: "Update_客戶資料", desc: "更新完整客戶資料（47欄位）" },
+          { id: "#4", name: "Read_客戶預約資料", desc: "查詢可預約床位/時段" },
+          { id: "#5", name: "Create_客戶預約資料", desc: "建立預約" },
+          { id: "#6", name: "Update_客戶預約資料", desc: "更新狀態 CANCEL/CHECKIN/FINISHED" }
+        ],
+        gaps: [
+          { name: "Read_消費單", desc: "拉取客戶消費紀錄", phase: "P4" },
+          { name: "Read_耗療項目", desc: "拉取未核銷療程清單", phase: "P4" },
+          { name: "Update_耗療核銷", desc: "電子病歷核銷後回寫凱惠", phase: "P4" },
+          { name: "Read_療程堂數", desc: "查詢客戶剩餘堂數", phase: "P4" },
+          { name: "Read_排班/床位", desc: "即時狀態（非必要）", phase: "-" },
+          { name: "簡訊模板自訂", desc: "確認能否塞短網址", phase: "P1" }
+        ]
+      },
+      discussions: [
+        { text: "控場→醫師/諮詢師的通知方式（系統內推播？LINE？口頭？）", done: false },
+        { text: "推車/設備管理是否納入？放在哪個流程環節？", done: false },
+        { text: "凱惠簡訊模板是否可自訂", done: false },
+        { text: "電子簽署廠商選定", done: false },
+        { text: "檢測儀器串接（Inbody/皮膚檢測/血值）", done: false },
+        { text: "處方箋是否納入", done: false },
+        { text: "角色權限細節（RBAC 或欄位級控制）", done: false },
+        { text: "針劑醫師排班功能需求確認", done: false },
+        { text: "VIP 照片分級權限規則", done: false },
+        { text: "LINE OA 綁定方案（LINE Login / LIFF）", done: false },
+        { text: "試行店別選定", done: false },
+        { text: "資安合規要求確認", done: false }
+      ],
+      infrastructure: [
+        {
+          title: "LINE OA 綁定機制",
+          items: [
+            "綁定時機：到店掃碼報到時觸發",
+            "綁定方式：LINE Login + 手機號碼比對凱惠客戶ID",
+            "綁定後能力：推播提醒、術後注意事項、查堂數、行銷再觸達",
+            "待確認：LINE Login 方案、美力是否有 LINE OA、四店共用或各自"
+          ]
+        },
+        {
+          title: "角色權限設計",
+          items: [
+            "小編：邀約畫面、自己負責的店",
+            "控場：今日報到清單、派工（僅該店）",
+            "諮詢師：被指派客戶、諮詢紀錄、照片",
+            "醫師：被指派客戶、療程紀錄（看不到金額）",
+            "護理師：耗療核銷、進度更新",
+            "主管：全部 + 金額 + 跨店報表",
+            "VIP 照片：僅指定角色可查看"
+          ]
+        },
+        {
+          title: "資料合規 & 備份",
+          items: [
+            "病歷保存：自最後就醫日起 7 年；未成年至成年+7年",
+            "個資法：蒐集需告知同意、客戶可要求刪除/匯出",
+            "備份：每日自動備份、異地備援（GCP 跨區域）",
+            "照片/文件存 Cloud Storage"
+          ]
+        },
+        {
+          title: "過渡期方案",
+          items: [
+            "Phase 1 上線：紙本+電子雙軌並行",
+            "舊客：到店時逐步完成 LINE 綁定，不需全部掃描",
+            "員工分批訓練：小編→控場→諮詢師→醫師",
+            "建議先在一家店試行，穩定後推其他店"
+          ]
+        }
       ]
     },
+    // ===== 白板只留主流程卡片 =====
     cards: [
       {
         id: "overview",
@@ -341,122 +415,19 @@ BA照片流程：
         title: "術後追蹤",
         status: "confirmed",
         col: 13, row: 0,
-        next: [],
+        next: ["customer-page"],
         content: `對應紙本「追蹤記錄單」
 術後追蹤紀錄電子化
 追蹤時間點、客戶反饋、恢復狀況
 與客人微型頁面串接（客人可查看術後注意事項）`,
         comments: []
       },
-      // ===== 補充卡片 =====
-      {
-        id: "line-bindng",
-        category: "基礎設施",
-        title: "LINE OA 綁定機制",
-        status: "discuss",
-        col: 4, row: -1.5,
-        next: [],
-        content: `貫穿整個流程的關鍵基礎設施
-
-綁定時機：客人到店掃碼報到時觸發
-綁定方式：LINE Login + 手機號碼比對凱惠客戶ID
-綁定後能力：
-- 推播預約提醒
-- 推播術後注意事項
-- 客人自助查堂數
-- 未來行銷再觸達
-
-📌 待確認：
-- LINE Login 方案選定（LINE Login v2.1 / LIFF）
-- 美力是否已有 LINE Official Account？哪個？
-- 四店共用一個 LINE OA 還是各店各自？`,
-        comments: []
-      },
-      {
-        id: "permissions",
-        category: "基礎設施",
-        title: "角色權限設計",
-        status: "discuss",
-        col: 6, row: -1.5,
-        next: [],
-        content: `各角色看到的資料範圍不同，需在開發前定義清楚
-
-小編：邀約畫面、預約清單（僅自己負責的店）
-控場：今日報到清單、派工面板（僅該店）
-諮詢師：被指派客戶、諮詢紀錄、照片上傳
-醫師：被指派客戶、療程紀錄、醫囑（看不到金額）
-護理師/美容師：耗療核銷、客戶進度更新
-主管/總公司：全部數據 + 金額 + 跨店報表
-
-特殊權限：
-- VIP/明星照片：僅指定角色可查看
-- 金額欄位：僅主管層級
-- 跨店調閱：需額外授權
-
-📌 待討論：權限用角色制（RBAC）還是更細的欄位級控制？`,
-        comments: []
-      },
-      {
-        id: "compliance",
-        category: "基礎設施",
-        title: "資料合規 & 備份",
-        status: "discuss",
-        col: 8, row: -1.5,
-        next: [],
-        content: `醫療資料有法規要求，電子病歷必須符合
-
-病歷保存年限：
-- 一般：自最後一次就醫日起 7 年
-- 未成年：至成年後再加 7 年
-- 同意書：同上
-
-個資法（台灣 PDPA）：
-- 蒐集/處理/利用需告知同意
-- 客戶有權要求刪除或匯出個資
-- 資料外洩需 72 小時內通報
-
-備份策略：
-- 資料庫每日自動備份
-- 異地備援（GCP 跨區域）
-- 照片/文件另存 Cloud Storage
-
-📌 待確認：
-- 美力是否有資訊安全專責人員？
-- 是否需要通過特定認證（如 ISO 27001）？`,
-        comments: []
-      },
-      {
-        id: "transition",
-        category: "基礎設施",
-        title: "過渡期方案",
-        status: "discuss",
-        col: 10, row: -1.5,
-        next: [],
-        content: `系統不可能一天全面切換，需要紙本 + 電子並行期
-
-Phase 1 上線時：
-- 報到改掃碼，但紙本病歷仍保留（雙軌）
-- 新客資料電子化，舊客資料逐步補建
-- 凱惠維持使用，電子病歷先做「加值層」不取代
-
-舊客資料遷移：
-- 現有凱惠客戶資料批次匯入電子病歷
-- 舊客到店時逐步完成 LINE 綁定
-- 紙本病歷不需全部掃描，從到店當天開始電子化
-
-員工訓練：
-- 各角色分批訓練（小編→控場→諮詢師→醫師）
-- 建議先在一家店試行，穩定後推其他店
-- 📌 建議試行店：站前4F（最忙，驗證壓力）或忠孝7F（較小，風險低）`,
-        comments: []
-      },
-      // ===== 原有的底部卡片 =====
       {
         id: "customer-page",
         category: "功能",
         title: "客人微型頁面（LINE OA）",
         status: "confirmed",
-        col: 13, row: 1.2,
+        col: 14, row: 0,
         next: [],
         content: `客人綁 LINE OA 後可自助查詢：
 - 剩餘療程堂數
@@ -466,103 +437,6 @@ Phase 1 上線時：
 
 減少客人打電話問堂數的客服負擔
 來源：霈方原規格「查看剩餘課程及堂數」功能`,
-        comments: []
-      },
-      {
-        id: "report",
-        category: "功能",
-        title: "總公司跨店報表",
-        status: "confirmed",
-        col: 13, row: 2.4,
-        next: [],
-        content: `最高管理者（總公司）可瀏覽所有店點數據
-- 各店到店率、預約量、no-show率
-- 療程分布、營收統計（僅主管層級）
-- 行銷歸因分析（哪個渠道/素材帶來最多客人）
-- 醫師治療分配（次數，不含金額）
-- 加盟店資料隔離：各店只看自己的數據`,
-        comments: []
-      },
-      {
-        id: "api-existing",
-        category: "技術",
-        title: "凱惠 API 現有 ✅",
-        status: "confirmed",
-        col: 0, row: 2.4,
-        next: [],
-        content: `API #1 Read_客戶資料：手機號碼查新舊客
-API #2 Create_客戶資料：快速建檔新客（姓名+手機+館別）
-API #3 Update_客戶資料：更新完整客戶資料（47欄位）
-API #4 Read_客戶預約資料：查詢可預約床位/時段
-API #5 Create_客戶預約資料：建立預約
-API #6 Update_客戶預約資料：更新狀態 CANCEL/CHECKIN/FINISHED
-館別代碼：4F / 11F / 7FA / 7FB`,
-        comments: []
-      },
-      {
-        id: "api-gap",
-        category: "技術",
-        title: "凱惠 API 缺口 ❌",
-        status: "gap",
-        col: 2, row: 2.4,
-        next: [],
-        content: `❌ Read_消費單：拉取客戶消費紀錄
-❌ Read_耗療項目：拉取未核銷療程清單
-❌ Update_耗療核銷：電子病歷 核銷後回寫凱惠
-❌ Read_療程堂數：查詢客戶剩餘堂數
-❌ Read_排班/床位即時狀態：未來電子病歷顯示排程（非必要）
-❓ 簡訊模板自訂：確認能否塞短網址進簡訊內容
-
-以上需與凱惠協商新增`,
-        comments: []
-      },
-      {
-        id: "discuss-items",
-        category: "待討論",
-        title: "📌 待討論事項總覽",
-        status: "discuss",
-        col: 4, row: 2.4,
-        next: [],
-        content: `1. 控場→醫師/諮詢師的通知方式（系統內推播？LINE？口頭？）
-2. 推車/設備管理（音波儀、電波儀等設備追蹤是否納入？放在哪個流程環節？）
-3. 凱惠簡訊模板是否可自訂
-4. 電子簽署廠商選定
-5. 檢測儀器串接方式（Inbody/皮膚檢測/血值，聽說有API可串，待確認）
-6. 處方箋是否納入（醫美多為非侵入，待確認是否有開處方需求）
-7. 角色權限細節（待系統完成一定程度後討論）
-8. 針劑醫師排班功能需求確認
-9. VIP照片分級權限的具體規則
-10. LINE OA 綁定方案（LINE Login / LIFF）
-11. 試行店別選定
-12. 資安合規要求確認`,
-        comments: []
-      },
-      {
-        id: "phases",
-        category: "規劃",
-        title: "分期建議",
-        status: "confirmed",
-        col: 6, row: 2.4,
-        next: [],
-        content: `Phase 1：報到+基本資料
-- QR掃碼報到、LINE OA綁定、新客填資料、舊客確認、到店dashboard
-
-Phase 2：邀約取代GSheet
-- 電子病歷邀約畫面（含行銷歸因欄位）、打API建凱惠預約、GSheet退場
-
-Phase 3：諮詢+療程紀錄
-- 初診評估勾選、諮詢紀錄、BA照上傳綁定客戶
-
-Phase 4：耗療核銷
-- 從凱惠拉消費單/耗療、護理師在電子病歷核銷、回寫凱惠
-- 前提：凱惠新API到位
-
-Phase 5：電子同意書+衛教書
-- 串接簽署廠商、同意書模板管理、簽署流程
-- 前提：電子簽署廠商選定
-
-Phase 6：醫囑+進階
-- 醫師施作紀錄、術後追蹤、檢測儀器串接、Meta歸因自動化、推車管理`,
         comments: []
       }
     ]
