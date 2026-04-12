@@ -1057,7 +1057,50 @@ body {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
+  margin-bottom: 0;
+}
+
+/* 模擬圖收合/展開 */
+.mockup-header {
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.mockup-header .card-mockup-label {
+  margin-bottom: 0;
+}
+
+.mockup-header .card-mockup-title {
+  flex: 1;
+}
+
+.mockup-toggle-icon {
+  font-size: 10px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+
+.card-mockup-embed:not(.mockup-collapsed) .mockup-toggle-icon {
+  transform: rotate(90deg);
+}
+
+.card-mockup-embed:not(.mockup-collapsed) .card-mockup-title {
   margin-bottom: 10px;
+}
+
+.mockup-body {
+  transition: all 0.2s ease;
+}
+
+.mockup-collapsed .mockup-body {
+  display: none;
+}
+
+.mockup-collapsed {
+  width: 220px !important;
 }
 
 /* ===== GSheet 風格表格 ===== */

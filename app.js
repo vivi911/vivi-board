@@ -280,15 +280,20 @@ function renderBoard() {
     const mockupData = card.mockup && MOCKUPS ? MOCKUPS[card.mockup] : null;
 
     if (mockupData) {
-      // 示意畫面卡片：寬版，嵌入 mockup HTML
-      el.className = `card-mockup-embed status-${card.status}-bar`;
+      // 示意畫面卡片：可收合，預設收合
+      el.className = `card-mockup-embed status-${card.status}-bar mockup-collapsed`;
       el.style.width = '500px';
       el.innerHTML = `
-        <div class="card-mockup-label">${card.category}</div>
-        <div class="card-mockup-title">${card.title}</div>
-        ${mockupData.html}
+        <div class="mockup-header" onclick="toggleMockup(event, '${card.id}')">
+          <div class="card-mockup-label">${card.category}</div>
+          <div class="card-mockup-title">${card.title}</div>
+          <span class="mockup-toggle-icon">▶</span>
+        </div>
+        <div class="mockup-body">
+          ${mockupData.html}
+        </div>
       `;
-      el.onclick = () => openPanel(card.id);
+      el.onclick = (e) => { if (!e.target.closest('.mockup-header')) openPanel(card.id); };
     } else {
       const commentCount = card.comments ? card.comments.length : 0;
       el.innerHTML = `
@@ -303,6 +308,7 @@ function renderBoard() {
     // 拖曳功能
     makeDraggable(el, card);
     container.appendChild(el);
+  });
   });
 
   // 繪製連接線（智能方向）
@@ -349,6 +355,17 @@ function renderBoard() {
       svg.appendChild(arrow);
     });
   });
+}
+
+function toggleMockup(e, cardId) {
+  e.stopPropagation();
+  const el = document.getElementById(`card-${cardId}`);
+  if (!el) return;
+  el.classList.toggle('mockup-collapsed');
+  const project = PROJECTS[currentProject];
+  if (project && positions_cache) {
+    redrawConnections(project, positions_cache);
+  }
 }
 
 function statusLabel(status) {
