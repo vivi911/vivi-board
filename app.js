@@ -94,6 +94,14 @@ async function doLogin() {
   showApp();
 }
 
+function doLogout() {
+  localStorage.removeItem('vivi-board-user');
+  currentUser = { name: '', role: '' };
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  onRoleChange();
+}
+
 async function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
