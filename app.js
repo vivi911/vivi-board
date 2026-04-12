@@ -87,12 +87,16 @@ async function doLogin() {
       document.getElementById('login-name').style.borderColor = '#F44336';
       return;
     }
-    // 存到 Firestore
-    await db.collection('board_users').add({
-      name: name,
-      role: role,
-      created_at: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    // 存到 Firestore（失敗不擋登入）
+    try {
+      await db.collection('board_users').add({
+        name: name,
+        role: role,
+        created_at: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (e) {
+      console.warn('儲存使用者失敗', e);
+    }
     boardUsers.push({ name, role });
   } else {
     name = selectVal;
