@@ -527,7 +527,7 @@ document.addEventListener('wheel', (e) => {
   // 判斷是否點在「背景」上
   function isBackground(target) {
     // 點在卡片或控制元素上 → 不是背景
-    if (target.closest('.card, .mockup-card, .arch-banner, .zoom-controls, .brief-panel, .comment-panel, button, input, textarea, select')) {
+    if (target.closest('.card, .card-mockup-embed, .arch-banner, .zoom-controls, .brief-panel, .comment-panel, button, input, textarea, select')) {
       return false;
     }
     // 其他都算背景（board-container, board, cards-container, svg 等）
