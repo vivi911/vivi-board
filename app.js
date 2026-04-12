@@ -499,17 +499,32 @@ async function addComment() {
 
   if (!card.comments) card.comments = [];
 
-  textarea.value = '';
-
-  // 寫入 Firestore（onSnapshot 會自動更新 UI）
-  await db.collection('board_comments').add({
-    project_id: currentProject,
-    card_id: currentCardId,
+  // 先更新 UI
+  const now = new Date();
+  card.comments.push({
+    id: 'temp_' + Date.now(),
     author: currentUser.name,
     role: currentUser.role,
     text: text,
-    created_at: firebase.firestore.FieldValue.serverTimestamp()
+    time: formatTime(now)
   });
+  renderComments(card);
+  renderBoard();
+  textarea.value = '';
+
+  // 再寫 Firestore
+  try {
+    await db.collection('board_comments').add({
+      project_id: currentProject,
+      card_id: currentCardId,
+      author: currentUser.name,
+      role: currentUser.role,
+      text: text,
+      created_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (e) {
+    console.warn('留言寫入失敗', e);
+  }
 }
 
 // ===== 縮放 + 平移 =====
