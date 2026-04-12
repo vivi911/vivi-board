@@ -28,11 +28,18 @@ const OFFSET_Y = 40;
 let boardUsers = []; // Firestore 已註冊使用者
 
 async function loadBoardUsers() {
-  const snap = await db.collection('board_users').orderBy('name').get();
-  boardUsers = [];
-  snap.forEach(doc => boardUsers.push({ id: doc.id, ...doc.data() }));
+  try {
+    const snap = await db.collection('board_users').orderBy('name').get();
+    boardUsers = [];
+    snap.forEach(doc => boardUsers.push({ id: doc.id, ...doc.data() }));
+  } catch (e) {
+    console.warn('載入使用者清單失敗', e);
+    boardUsers = [];
+  }
   return boardUsers;
 }
+
+let boardUsersLoaded = false;
 
 function getSelectedRole() {
   const checked = document.querySelector('input[name="role"]:checked');
@@ -42,7 +49,10 @@ function getSelectedRole() {
 async function onRoleChange() {
   const role = getSelectedRole();
   const select = document.getElementById('login-user-select');
-  if (boardUsers.length === 0) await loadBoardUsers();
+  if (!boardUsersLoaded) {
+    await loadBoardUsers();
+    boardUsersLoaded = true;
+  }
   const filtered = boardUsers.filter(u => u.role === role);
   select.innerHTML = '';
   if (filtered.length > 0) {
