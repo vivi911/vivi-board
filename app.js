@@ -309,7 +309,6 @@ function renderBoard() {
     makeDraggable(el, card);
     container.appendChild(el);
   });
-  });
 
   // 繪製連接線（智能方向）
   project.cards.forEach(card => {
