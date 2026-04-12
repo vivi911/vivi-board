@@ -854,6 +854,27 @@ body {
   padding: 12px;
 }
 
+.brief-private-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-left: 6px;
+}
+
+.note-delete {
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: all 0.15s;
+}
+
+.note-delete:hover {
+  color: #E53935;
+  background: rgba(229,57,53,0.08);
+}
+
 /* API 狀態表 */
 .brief-api-table {
   width: 100%;

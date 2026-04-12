@@ -134,6 +134,7 @@ async function showApp() {
   // 從 Firestore 載入資料（任一失敗不影響其他）
   await loadFromFirestore().catch(e => console.warn('載入卡片/留言失敗', e));
   await loadDecisions().catch(e => console.warn('載入決議失敗', e));
+  await loadNotes().catch(e => console.warn('載入筆記失敗', e));
   await loadDiscussionState().catch(e => console.warn('載入討論狀態失敗', e));
   await loadCardPositions().catch(e => console.warn('載入卡片位置失敗', e));
 
@@ -143,6 +144,7 @@ async function showApp() {
   // 訂閱即時更新
   subscribeRealtime();
   subscribeDecisions();
+  subscribeNotes();
 }
 
 // ===== Firestore 資料同步 =====
@@ -652,6 +654,88 @@ async function addDecision() {
   });
 }
 
+// ===== 個人筆記 =====
+let myNotes = [];
+
+async function loadNotes() {
+  try {
+    const projId = currentProject || Object.keys(PROJECTS)[0];
+    const snap = await db.collection('board_notes')
+      .where('project_id', '==', projId)
+      .where('author', '==', currentUser.name)
+      .orderBy('created_at', 'desc')
+      .get();
+    myNotes = [];
+    snap.forEach(doc => myNotes.push({ id: doc.id, ...doc.data() }));
+  } catch (e) {
+    console.warn('載入筆記失敗', e);
+    myNotes = [];
+  }
+}
+
+function subscribeNotes() {
+  const projId = currentProject || Object.keys(PROJECTS)[0];
+  db.collection('board_notes')
+    .where('project_id', '==', projId)
+    .where('author', '==', currentUser.name)
+    .orderBy('created_at', 'desc')
+    .onSnapshot(snapshot => {
+      myNotes = [];
+      snapshot.forEach(doc => myNotes.push({ id: doc.id, ...doc.data() }));
+      renderNotesList();
+    }, e => console.warn('筆記訂閱失敗', e));
+}
+
+function renderNotesList() {
+  const list = document.getElementById('notes-list');
+  if (!list) return;
+
+  if (myNotes.length === 0) {
+    list.innerHTML = '<div class="brief-no-decisions">尚無筆記</div>';
+    return;
+  }
+
+  list.innerHTML = myNotes.map(n => `
+    <div class="brief-decision">
+      <div class="brief-decision-header">
+        <span class="brief-decision-date">${escapeHtml(n.date || '')}</span>
+        <span class="note-delete" onclick="deleteNote('${n.id}')" title="刪除">✕</span>
+      </div>
+      <div class="brief-decision-text">${escapeHtml(n.text)}</div>
+    </div>
+  `).join('');
+}
+
+async function addNote() {
+  const textarea = document.getElementById('note-text');
+  const text = textarea.value.trim();
+  if (!text) return;
+
+  const now = new Date();
+  const date = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
+  textarea.value = '';
+
+  try {
+    await db.collection('board_notes').add({
+      project_id: currentProject,
+      date: date,
+      text: text,
+      author: currentUser.name,
+      created_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (e) {
+    console.warn('新增筆記失敗', e);
+  }
+}
+
+async function deleteNote(noteId) {
+  try {
+    await db.collection('board_notes').doc(noteId).delete();
+  } catch (e) {
+    console.warn('刪除筆記失敗', e);
+  }
+}
+
 // ===== 左側簡報面板 =====
 function renderBrief() {
   const project = PROJECTS[currentProject];
@@ -685,13 +769,13 @@ function renderBrief() {
     </div>
   </div>`;
 
-  // 決議紀錄
+  // 我的筆記（個人）
   html += `<div class="brief-section">
-    <div class="brief-section-title">決議紀錄</div>
-    <div id="decisions-list"></div>
+    <div class="brief-section-title">我的筆記 <span class="brief-private-hint">僅個人看到</span></div>
+    <div id="notes-list"></div>
     <div class="brief-decision-input">
-      <textarea id="decision-text" placeholder="記錄會議決議或重要共識..." rows="2"></textarea>
-      <button onclick="addDecision()">新增決議</button>
+      <textarea id="note-text" placeholder="記下你的想法或備忘..." rows="2"></textarea>
+      <button onclick="addNote()">新增筆記</button>
       <div style="clear:both"></div>
     </div>
   </div>`;
@@ -815,6 +899,7 @@ function renderBrief() {
 
   document.getElementById('brief-content').innerHTML = html;
   renderDecisionsList();
+  renderNotesList();
 }
 
 // 每個人的打勾狀態：{ "討論項目index": { "userName": true/false } }
