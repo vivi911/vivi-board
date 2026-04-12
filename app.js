@@ -433,16 +433,26 @@ document.addEventListener('wheel', (e) => {
 (function initCanvasPan() {
   const container = document.getElementById('board-container');
   let isPanning = false;
+  let hasMoved = false;
   let panStartX, panStartY, scrollStartX, scrollStartY;
 
+  // 判斷是否點在「背景」上（board-container / board / cards-container / connections）
+  function isBackground(target) {
+    const id = target.id;
+    if (id === 'board-container' || id === 'board' || id === 'cards-container' || id === 'connections') return true;
+    // SVG 子元素（連線）也算背景
+    if (target.closest('#connections')) return true;
+    return false;
+  }
+
   container.addEventListener('mousedown', (e) => {
-    // 只在點擊背景時啟動平移（不是卡片、按鈕、輸入框等）
+    if (!isBackground(e.target)) return;
+    // 排除互動元素
     const tag = e.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON') return;
-    // 點在卡片上不觸發平移
-    if (e.target.closest('.card, .mockup-card, .arch-banner, .zoom-controls, .brief-panel, .comment-panel')) return;
 
     isPanning = true;
+    hasMoved = false;
     panStartX = e.clientX;
     panStartY = e.clientY;
     scrollStartX = container.scrollLeft;
@@ -455,6 +465,7 @@ document.addEventListener('wheel', (e) => {
     if (!isPanning) return;
     const dx = e.clientX - panStartX;
     const dy = e.clientY - panStartY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
     container.scrollLeft = scrollStartX - dx;
     container.scrollTop = scrollStartY - dy;
   });
@@ -462,21 +473,10 @@ document.addEventListener('wheel', (e) => {
   document.addEventListener('mouseup', () => {
     if (isPanning) {
       isPanning = false;
-      container.style.cursor = '';
-    }
-  });
-
-  // 背景顯示 grab 游標
-  container.addEventListener('mouseover', (e) => {
-    if (!isPanning && e.target === container || e.target.id === 'board' || e.target.id === 'connections') {
       container.style.cursor = 'grab';
     }
   });
-  container.addEventListener('mouseout', (e) => {
-    if (!isPanning && (e.target === container || e.target.id === 'board' || e.target.id === 'connections')) {
-      container.style.cursor = '';
-    }
-  });
+
 })();
 
 // Enter 送出留言
