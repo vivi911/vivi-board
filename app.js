@@ -429,6 +429,56 @@ document.addEventListener('wheel', (e) => {
   }
 }, { passive: false });
 
+// ===== 畫布拖曳平移（Canva 風格）=====
+(function initCanvasPan() {
+  const container = document.getElementById('board-container');
+  let isPanning = false;
+  let panStartX, panStartY, scrollStartX, scrollStartY;
+
+  container.addEventListener('mousedown', (e) => {
+    // 只在點擊背景時啟動平移（不是卡片、按鈕、輸入框等）
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON') return;
+    // 點在卡片上不觸發平移
+    if (e.target.closest('.card, .mockup-card, .arch-banner, .zoom-controls, .brief-panel, .comment-panel')) return;
+
+    isPanning = true;
+    panStartX = e.clientX;
+    panStartY = e.clientY;
+    scrollStartX = container.scrollLeft;
+    scrollStartY = container.scrollTop;
+    container.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isPanning) return;
+    const dx = e.clientX - panStartX;
+    const dy = e.clientY - panStartY;
+    container.scrollLeft = scrollStartX - dx;
+    container.scrollTop = scrollStartY - dy;
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isPanning) {
+      isPanning = false;
+      container.style.cursor = '';
+    }
+  });
+
+  // 背景顯示 grab 游標
+  container.addEventListener('mouseover', (e) => {
+    if (!isPanning && e.target === container || e.target.id === 'board' || e.target.id === 'connections') {
+      container.style.cursor = 'grab';
+    }
+  });
+  container.addEventListener('mouseout', (e) => {
+    if (!isPanning && (e.target === container || e.target.id === 'board' || e.target.id === 'connections')) {
+      container.style.cursor = '';
+    }
+  });
+})();
+
 // Enter 送出留言
 document.addEventListener('keydown', (e) => {
   if (e.target.id === 'comment-text' && e.key === 'Enter' && !e.shiftKey) {
