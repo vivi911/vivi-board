@@ -391,12 +391,18 @@ async function addComment() {
   });
 }
 
-// ===== 縮放 =====
+// ===== 縮放 + 平移 =====
+let panX = 0, panY = 0;
+
+function applyTransform() {
+  const board = document.getElementById('board');
+  board.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+  board.style.transformOrigin = 'top left';
+}
+
 function setZoom(level) {
   zoomLevel = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, level));
-  const board = document.getElementById('board');
-  board.style.transform = `scale(${zoomLevel})`;
-  board.style.transformOrigin = 'top left';
+  applyTransform();
   document.getElementById('zoom-display').textContent = Math.round(zoomLevel * 100) + '%';
 }
 
@@ -415,6 +421,8 @@ function zoomFit() {
   const container = document.getElementById('board-container');
   const scaleX = (container.clientWidth - 60) / maxX;
   const scaleY = (container.clientHeight - 60) / maxY;
+  panX = 0;
+  panY = 0;
   setZoom(Math.min(scaleX, scaleY, 1));
   container.scrollLeft = 0;
   container.scrollTop = 0;
@@ -433,41 +441,35 @@ document.addEventListener('wheel', (e) => {
 (function initCanvasPan() {
   const container = document.getElementById('board-container');
   let isPanning = false;
-  let hasMoved = false;
-  let panStartX, panStartY, scrollStartX, scrollStartY;
+  let panStartX, panStartY, panOrigX, panOrigY;
 
-  // 判斷是否點在「背景」上（board-container / board / cards-container / connections）
+  // 判斷是否點在「背景」上
   function isBackground(target) {
-    const id = target.id;
-    if (id === 'board-container' || id === 'board' || id === 'cards-container' || id === 'connections') return true;
-    // SVG 子元素（連線）也算背景
-    if (target.closest('#connections')) return true;
-    return false;
+    // 點在卡片或控制元素上 → 不是背景
+    if (target.closest('.card, .mockup-card, .arch-banner, .zoom-controls, .brief-panel, .comment-panel, button, input, textarea, select')) {
+      return false;
+    }
+    // 其他都算背景（board-container, board, cards-container, svg 等）
+    return container.contains(target);
   }
 
   container.addEventListener('mousedown', (e) => {
     if (!isBackground(e.target)) return;
-    // 排除互動元素
-    const tag = e.target.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON') return;
 
     isPanning = true;
-    hasMoved = false;
     panStartX = e.clientX;
     panStartY = e.clientY;
-    scrollStartX = container.scrollLeft;
-    scrollStartY = container.scrollTop;
+    panOrigX = panX;
+    panOrigY = panY;
     container.style.cursor = 'grabbing';
     e.preventDefault();
   });
 
   document.addEventListener('mousemove', (e) => {
     if (!isPanning) return;
-    const dx = e.clientX - panStartX;
-    const dy = e.clientY - panStartY;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
-    container.scrollLeft = scrollStartX - dx;
-    container.scrollTop = scrollStartY - dy;
+    panX = panOrigX + (e.clientX - panStartX);
+    panY = panOrigY + (e.clientY - panStartY);
+    applyTransform();
   });
 
   document.addEventListener('mouseup', () => {
@@ -476,7 +478,6 @@ document.addEventListener('wheel', (e) => {
       container.style.cursor = 'grab';
     }
   });
-
 })();
 
 // Enter 送出留言
