@@ -618,7 +618,11 @@ document.addEventListener('wheel', (e) => {
 
 // Enter 送出留言
 document.addEventListener('keydown', (e) => {
-  // 留言框 Enter 不送出，讓使用者自由換行，只能按「送出」按鈕
+  // 留言框：選字中 Enter 確認字，非選字時 Enter 送出
+  if (e.target.id === 'comment-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+    e.preventDefault();
+    addComment();
+  }
   if (e.target.id === 'decision-text' && e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     addDecision();
