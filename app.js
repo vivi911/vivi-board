@@ -756,15 +756,15 @@ function renderBrief() {
     <div class="brief-dashboard">
       <div class="brief-stat stat-confirmed">
         <div class="brief-stat-number">${counts.confirmed}</div>
-        <div class="brief-stat-label">已確認</div>
+        <div class="brief-stat-label">流程已確認</div>
       </div>
       <div class="brief-stat stat-discuss">
         <div class="brief-stat-number">${counts.discuss}</div>
-        <div class="brief-stat-label">待討論</div>
+        <div class="brief-stat-label">流程待討論</div>
       </div>
       <div class="brief-stat stat-gap">
         <div class="brief-stat-number">${counts.gap}</div>
-        <div class="brief-stat-label">API缺口</div>
+        <div class="brief-stat-label">API待串接</div>
       </div>
     </div>
   </div>`;
