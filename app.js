@@ -280,20 +280,23 @@ function renderBoard() {
     const mockupData = card.mockup && MOCKUPS ? MOCKUPS[card.mockup] : null;
 
     if (mockupData) {
-      // 示意畫面卡片：可收合，預設收合
-      el.className = `card-mockup-embed status-${card.status}-bar mockup-collapsed`;
+      // 示意畫面卡片：可自由縮放
+      el.className = `card-mockup-embed status-${card.status}-bar`;
       el.style.width = '500px';
       el.innerHTML = `
-        <div class="mockup-header" onclick="toggleMockup(event, '${card.id}')">
+        <div class="mockup-header">
           <div class="card-mockup-label">${card.category}</div>
           <div class="card-mockup-title">${card.title}</div>
-          <span class="mockup-toggle-icon">▶</span>
         </div>
         <div class="mockup-body">
           ${mockupData.html}
         </div>
+        <div class="mockup-resizer" data-card-id="${card.id}"></div>
       `;
-      el.onclick = (e) => { if (!e.target.closest('.mockup-header')) openPanel(card.id); };
+      el.onclick = (e) => { if (!e.target.closest('.mockup-resizer')) openPanel(card.id); };
+      // 縮放把手
+      const resizer = el.querySelector('.mockup-resizer');
+      makeResizable(el, resizer);
     } else {
       const commentCount = card.comments ? card.comments.length : 0;
       el.innerHTML = `
@@ -356,15 +359,36 @@ function renderBoard() {
   });
 }
 
-function toggleMockup(e, cardId) {
-  e.stopPropagation();
-  const el = document.getElementById(`card-${cardId}`);
-  if (!el) return;
-  el.classList.toggle('mockup-collapsed');
-  const project = PROJECTS[currentProject];
-  if (project && positions_cache) {
-    redrawConnections(project, positions_cache);
-  }
+function makeResizable(el, handle) {
+  let startX, startY, startW, startH;
+
+  handle.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    startX = e.clientX;
+    startY = e.clientY;
+    startW = el.offsetWidth;
+    startH = el.offsetHeight;
+
+    const onMove = (e2) => {
+      const dw = (e2.clientX - startX) / zoomLevel;
+      const dh = (e2.clientY - startY) / zoomLevel;
+      el.style.width = Math.max(200, startW + dw) + 'px';
+      el.style.height = Math.max(100, startH + dh) + 'px';
+    };
+
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      const project = PROJECTS[currentProject];
+      if (project && positions_cache) {
+        redrawConnections(project, positions_cache);
+      }
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
 }
 
 function statusLabel(status) {
