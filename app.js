@@ -25,13 +25,70 @@ const OFFSET_X = 40;
 const OFFSET_Y = 40;
 
 // ===== 登入 =====
-function doLogin() {
-  const name = document.getElementById('login-name').value.trim();
-  const role = document.querySelector('input[name="role"]:checked').value;
-  if (!name) {
-    document.getElementById('login-name').style.borderColor = '#F44336';
-    return;
+let boardUsers = []; // Firestore 已註冊使用者
+
+async function loadBoardUsers() {
+  const snap = await db.collection('board_users').orderBy('name').get();
+  boardUsers = [];
+  snap.forEach(doc => boardUsers.push({ id: doc.id, ...doc.data() }));
+  return boardUsers;
+}
+
+function getSelectedRole() {
+  const checked = document.querySelector('input[name="role"]:checked');
+  return checked ? checked.value : '';
+}
+
+async function onRoleChange() {
+  const role = getSelectedRole();
+  const select = document.getElementById('login-user-select');
+  if (boardUsers.length === 0) await loadBoardUsers();
+  const filtered = boardUsers.filter(u => u.role === role);
+  select.innerHTML = '';
+  if (filtered.length > 0) {
+    filtered.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.name;
+      opt.textContent = u.name;
+      select.appendChild(opt);
+    });
   }
+  // 永遠加上「新成員」選項
+  const newOpt = document.createElement('option');
+  newOpt.value = '__new__';
+  newOpt.textContent = '＋ 我是新成員';
+  select.appendChild(newOpt);
+  onUserSelect();
+}
+
+function onUserSelect() {
+  const val = document.getElementById('login-user-select').value;
+  document.getElementById('login-new-name').style.display = val === '__new__' ? 'block' : 'none';
+}
+
+async function doLogin() {
+  const role = getSelectedRole();
+  const selectVal = document.getElementById('login-user-select').value;
+  let name;
+
+  if (selectVal === '__new__') {
+    name = document.getElementById('login-name').value.trim();
+    if (!name) {
+      document.getElementById('login-name').style.borderColor = '#F44336';
+      return;
+    }
+    // 存到 Firestore
+    await db.collection('board_users').add({
+      name: name,
+      role: role,
+      created_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    boardUsers.push({ name, role });
+  } else {
+    name = selectVal;
+  }
+
+  if (!name) return;
   currentUser = { name, role };
   localStorage.setItem('vivi-board-user', JSON.stringify(currentUser));
   showApp();
@@ -1064,4 +1121,5 @@ function toggleBrief() {
     } catch (e) {}
   }
   document.getElementById('login-screen').style.display = 'flex';
+  onRoleChange(); // 載入該角色的使用者清單
 })();

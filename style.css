@@ -155,6 +155,29 @@ body {
   color: var(--text-body);
 }
 
+#login-user-select {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+#login-user-select:focus {
+  border-color: var(--gold);
+  box-shadow: var(--shadow-gold);
+}
+
+#login-new-name {
+  margin-top: 10px;
+}
+
 #login-btn {
   width: 100%;
   margin-top: 28px;

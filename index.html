@@ -15,26 +15,27 @@
     <h1 class="login-title">Vivi's Board</h1>
     <p class="login-subtitle">專案協作白板</p>
     <div class="login-form">
-      <label>請輸入你的名字</label>
-      <input type="text" id="login-name" placeholder="例如：Sam" />
       <label>選擇你的角色</label>
       <div class="role-options">
         <label class="role-option">
-          <input type="radio" name="role" value="管理者" checked />
-          <span class="role-label">管理者（Vivi）</span>
+          <input type="radio" name="role" value="品牌商" checked onchange="onRoleChange()" />
+          <span class="role-label">品牌商（美力時尚）</span>
         </label>
         <label class="role-option">
-          <input type="radio" name="role" value="開發商" />
+          <input type="radio" name="role" value="開發商" onchange="onRoleChange()" />
           <span class="role-label">開發商（采盟）</span>
         </label>
         <label class="role-option">
-          <input type="radio" name="role" value="美力內部" />
-          <span class="role-label">美力內部</span>
+          <input type="radio" name="role" value="POS商" onchange="onRoleChange()" />
+          <span class="role-label">POS商（凱惠）</span>
         </label>
-        <label class="role-option">
-          <input type="radio" name="role" value="訪客" />
-          <span class="role-label">訪客</span>
-        </label>
+      </div>
+      <label>選擇你的名字</label>
+      <select id="login-user-select" onchange="onUserSelect()">
+        <option value="">載入中...</option>
+      </select>
+      <div id="login-new-name" style="display:none;">
+        <input type="text" id="login-name" placeholder="輸入你的名字" />
       </div>
       <button id="login-btn" onclick="doLogin()">進入白板</button>
     </div>
