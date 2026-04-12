@@ -1051,10 +1051,14 @@ function renderArchBanner(container) {
 
 // ===== 卡片位置載入 =====
 async function loadCardPositions() {
-  const snap = await db.collection('board_card_positions').get();
+  const userName = currentUser.name;
+  const projId = currentProject || Object.keys(PROJECTS)[0];
+  const snap = await db.collection('board_card_positions')
+    .where('project_id', '==', projId)
+    .where('user', '==', userName)
+    .get();
   snap.forEach(doc => {
     const d = doc.data();
-    if (d.project_id !== (currentProject || Object.keys(PROJECTS)[0])) return;
     const project = PROJECTS[d.project_id];
     if (!project) return;
     const card = project.cards.find(c => c.id === d.card_id);
@@ -1105,11 +1109,12 @@ function makeDraggable(el, card) {
         const newY = parseInt(el.style.top);
         card.col = (newX - OFFSET_X) / GAP_X;
         card.row = (newY - OFFSET_Y) / GAP_Y - 1.5;
-        // 存到 Firestore
-        const docId = `${currentProject}_${card.id}_pos`;
+        // 存到 Firestore（每人獨立位置）
+        const docId = `${currentProject}_${card.id}_${currentUser.name}_pos`;
         db.collection('board_card_positions').doc(docId).set({
           project_id: currentProject,
           card_id: card.id,
+          user: currentUser.name,
           col: card.col,
           row: card.row
         });
