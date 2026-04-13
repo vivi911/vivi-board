@@ -264,11 +264,14 @@ function renderBoard() {
   container.innerHTML = '';
   svg.innerHTML = '';
 
-  // 渲染白板頂部架構圖
-  renderArchBanner(container);
+  // 渲染白板頂部架構圖（僅 EMR 專案顯示）
+  const showArchBanner = currentProject === 'meili-emr';
+  if (showArchBanner) {
+    renderArchBanner(container);
+  }
 
   const archCollapsed = localStorage.getItem('vivi-board-arch-collapsed') === 'true';
-  const ARCH_OFFSET_Y = archCollapsed ? 60 : 360;
+  const ARCH_OFFSET_Y = showArchBanner ? (archCollapsed ? 60 : 360) : 20;
 
   const positions = {};
   project.cards.forEach(card => {
