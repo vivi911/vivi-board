@@ -460,14 +460,19 @@ BA照片流程：
         { text: "會計多久上傳一次 A1？每天 / 每週？", done: false },
         { text: "司機回報格式是否所有司機都一致？", done: false },
         { text: "A1 電商匯入中心「販賣機」自訂商店的欄位確認", done: false },
-        { text: "Excel 放雲端 vs 儀表板勾選匯出，會計偏好哪種？", done: false }
+        { text: "Excel 放雲端 vs 儀表板勾選匯出，會計偏好哪種？", done: false },
+        { text: "一則訊息可能包含多台機器回報（如同時報兩個地點），AI 需拆成多筆銷貨單 —— 確認是否常見", done: false },
+        { text: "品號是否永遠用 RAN00003？還是有些回報需用 RAN00001 盲玩(24)、RAN00002 盲玩(30)、RAN00004 入金、RAN00005 電子支付？", done: false },
+        { text: "司機回報群組有幾個？Bot 需加入幾個群？", done: false },
+        { text: "LINE OA 帳號：用 goaskvivi 默默的？還是 Sean 自己開一個？", done: false },
+        { text: "Google Drive 共用資料夾用誰的帳號？goaskvivi 還是 Sean 公司？", done: false }
       ],
       infrastructure: [
         {
           title: "報價摘要",
           items: [
-            "系統建置費：NT$8,000（一次性）",
-            "月維護訂閱費：NT$1,200/月（驗收後起算）",
+            "系統建置費：NT$8,000（一次性，未稅）",
+            "月維護訂閱費：NT$1,200/月（驗收後起算，未稅）",
             "合約日期：2026/04/12，已雙方用印簽回"
           ]
         },
