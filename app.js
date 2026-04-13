@@ -121,14 +121,26 @@ async function showApp() {
   document.getElementById('app').style.display = 'block';
   document.getElementById('user-badge').textContent = `${currentUser.name}（${currentUser.role}）`;
 
+  // 檢查 URL 參數是否鎖定專案
+  const urlParams = new URLSearchParams(window.location.search);
+  const lockedProject = urlParams.get('project');
+
   // 填充專案選單
   const select = document.getElementById('project-select');
   select.innerHTML = '';
-  for (const [key, proj] of Object.entries(PROJECTS)) {
+  const projectKeys = lockedProject && PROJECTS[lockedProject]
+    ? [lockedProject]
+    : Object.keys(PROJECTS);
+  for (const key of projectKeys) {
+    const proj = PROJECTS[key];
     const opt = document.createElement('option');
     opt.value = key;
     opt.textContent = proj.name;
     select.appendChild(opt);
+  }
+  // 鎖定時隱藏選單
+  if (lockedProject && PROJECTS[lockedProject]) {
+    select.style.display = 'none';
   }
 
   // 從 Firestore 載入資料（任一失敗不影響其他）
@@ -138,8 +150,8 @@ async function showApp() {
   await loadDiscussionState().catch(e => console.warn('載入討論狀態失敗', e));
   await loadCardPositions().catch(e => console.warn('載入卡片位置失敗', e));
 
-  // 載入第一個專案
-  switchProject(Object.keys(PROJECTS)[0]);
+  // 載入專案（鎖定或預設第一個）
+  switchProject(lockedProject && PROJECTS[lockedProject] ? lockedProject : Object.keys(PROJECTS)[0]);
 
   // 訂閱即時更新
   subscribeRealtime();
