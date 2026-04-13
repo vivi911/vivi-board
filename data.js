@@ -422,5 +422,235 @@ BA照片流程：
         comments: []
       },
     ]
+  },
+
+  "sean-vending": {
+    name: "Sean 販賣機業績自動化",
+    brief: {
+      background: `Sean 經營販賣機事業，機台 50+ 台分布各商場（秀泰、微風、中正紀念堂等）。
+目前司機巡機後在 LINE 群組回報業績，會計逐筆手動建鼎新 A1 銷貨單，耗時且易錯。
+目標：默默小幫手自動監聽 LINE 回報 → AI 解析 → 產出 A1 匯入格式 Excel → 會計批次匯入。`,
+      pain_points: [
+        "司機每次回報一大段文字，會計要肉眼找出數量和金額",
+        "每筆都要手動開 A1 → 選客戶 → 選業務 → 選品號 → 輸入數量金額 → 儲存",
+        "50+ 機台，每月可能數百筆，全靠人工逐筆建單",
+        "容易看錯數字、選錯客戶，出錯後難追溯",
+        "會計時間花在低價值的資料搬運上"
+      ],
+      roles: [
+        { name: "司機", desc: "巡機、補貨、回報業績（LINE 群組固定格式）" },
+        { name: "會計", desc: "讀 LINE 訊息 → 建 A1 銷貨單 → 對帳" },
+        { name: "Sean", desc: "老闆，掌握整體營收數據" }
+      ],
+      team: [
+        { role: "客戶", name: "Sean", org: "販賣機事業" },
+        { role: "開發", name: "Vivi", org: "goaskvivi" }
+      ],
+      locations: ["微風松高", "秀泰文心6F", "台中秀泰S1館2F", "中正紀念堂", "...共 50+ 點位"],
+      phases: [
+        { id: "P0", name: "合約簽訂", status: "done", note: "2026/04/13 雙方用印" },
+        { id: "P1", name: "建置開發", status: "current", note: "LINE Bot + AI 解析 + Excel 產出" },
+        { id: "P2", name: "測試驗收", status: "planned", note: "7 天驗收期" },
+        { id: "P3", name: "正式上線", status: "planned", note: "驗收通過後月訂閱起算" }
+      ],
+      apis: { existing: [], gaps: [] },
+      discussions: [
+        { text: "客戶代碼對照表（地點 → V 編號）—— 等 Sean 提供", done: false },
+        { text: "業務代碼對照表（司機 → A/B 編號）—— 等 Sean 提供", done: false },
+        { text: "會計多久上傳一次 A1？每天 / 每週？", done: false },
+        { text: "司機回報格式是否所有司機都一致？", done: false },
+        { text: "A1 電商匯入中心「販賣機」自訂商店的欄位確認", done: false },
+        { text: "Excel 放雲端 vs 儀表板勾選匯出，會計偏好哪種？", done: false }
+      ],
+      infrastructure: [
+        {
+          title: "報價摘要",
+          items: [
+            "系統建置費：NT$8,000（一次性）",
+            "月維護訂閱費：NT$1,200/月（驗收後起算）",
+            "合約日期：2026/04/12，已雙方用印簽回"
+          ]
+        },
+        {
+          title: "技術架構",
+          items: [
+            "LINE Bot（默默小幫手）加入司機回報群組",
+            "Webhook 接收訊息 → Claude Haiku 解析",
+            "解析結果存 Firestore + 產出 Excel",
+            "Excel 存 Google Drive 共用資料夾",
+            "部署：GCP Cloud Run（與默默共用）"
+          ]
+        },
+        {
+          title: "交付項目",
+          items: [
+            "AI 小幫手 LINE Bot（加入群組自動辨識）",
+            "自動 Excel 產出（A1 匯入格式）",
+            "Google Drive 共用資料夾",
+            "A1 自訂格式設定（販賣機商店）",
+            "操作 SOP 文件"
+          ]
+        }
+      ]
+    },
+    cards: [
+      {
+        id: "s-flow1",
+        category: "流程1",
+        title: "司機 LINE 回報",
+        status: "confirmed",
+        col: 0, row: 0,
+        next: ["s-flow2"],
+        content: `司機巡機後在 LINE 群組發固定格式回報：
+
+📌 訊息結構：
+第1行：日期區間 + 地點名稱（如「0409-(0413) 微風松高」）
+第2行：機台型號（3627史努比藍 F8CAU）
+中間：國稅局號碼、設備編號、收款讀數（不需要）
+關鍵行：「本次實收 268 罐 11340 元」→ 數量 + 金額
+尾部：司機英文名（Gary / LAI / RJ / Jeffry）
+
+每則回報 = 一台機器在一個地點的銷售彙總`,
+        comments: []
+      },
+      {
+        id: "s-flow2",
+        category: "流程2",
+        title: "默默靜默監聽 + Reply 確認",
+        status: "confirmed",
+        col: 1, row: 0,
+        next: ["s-flow3"],
+        content: `默默在司機群組靜默監聽所有訊息
+收到回報後 AI（Haiku）即時解析，30 秒內 Reply：
+
+✅ 收到
+📍 微風松高｜268 罐｜$11,340
+👤 Gary
+
+▸ Reply 不吃 LINE 推播額度（免費）
+▸ 司機和會計都看得到，確認沒漏
+▸ 解析失敗時回覆「⚠️ 這筆看不懂，請會計確認」`,
+        comments: []
+      },
+      {
+        id: "s-flow3",
+        category: "流程3",
+        title: "AI 解析 → 寫入資料庫",
+        status: "discuss",
+        col: 2, row: 0,
+        next: ["s-flow4a", "s-flow4b"],
+        content: `AI 從訊息抓出 3 個關鍵欄位：
+
+1. 地點 → 查對照表 → 客戶代碼（V10067）
+2.「本次實收 X 罐 Y 元」→ 數量 + 金額
+3. 司機名 → 查對照表 → 業務代碼（A06）
+
+固定欄位（不需解析）：
+・品號：RAN00003（販賣機混和產品）
+・收款方式：月結/未收款/貨到付款
+・發票聯式：不開
+・課稅別：無
+
+解析結果寫入 Firestore`,
+        comments: []
+      },
+      {
+        id: "s-flow4a",
+        category: "路徑A",
+        title: "方案 A：Excel 放 Google Drive",
+        status: "discuss",
+        col: 3, row: 0,
+        next: ["s-flow5"],
+        mockup: "sean-option-a",
+        content: `每日自動產出一份 A1 格式 Excel 存 Google Drive
+
+會計流程：
+1. 打開 Google Drive 共用資料夾
+2. 下載今天的 Excel（如 2026-04-13.xlsx）
+3. 上傳 A1 電商匯入中心
+4. 批次轉銷貨單
+
+✅ 優點：簡單、成本低、在報價範圍內
+⚠️ 缺點：沒有即時總覽、不知道哪些已入帳`,
+        comments: []
+      },
+      {
+        id: "s-flow4b",
+        category: "路徑B",
+        title: "方案 B：儀表板勾選匯出",
+        status: "discuss",
+        col: 3, row: 1,
+        next: ["s-flow5"],
+        mockup: "sean-option-b",
+        content: `會計打開網頁儀表板，即時看到所有銷貨：
+
+☑️ 微風松高｜268罐｜$11,340｜Gary  → 反灰
+☑️ 秀泰文心｜332罐｜$13,230｜LAI   → 反灰
+☐ 台中秀泰｜141罐｜$5,880｜RJ
+☐ 中正紀念堂｜293罐｜$11,875｜Jeffry
+
+勾選完 → 按「匯出 Excel」→ 上傳 A1
+
+✅ 優點：即時可見、勾過反灰不怕漏、可改錯
+⚠️ 缺點：開發量較大，可能需額外報價`,
+        comments: []
+      },
+      {
+        id: "s-flow5",
+        category: "流程5",
+        title: "會計上傳 A1 → 批次轉銷貨單",
+        status: "confirmed",
+        col: 4, row: 0,
+        next: [],
+        content: `會計拿到 Excel 後：
+
+1. 登入鼎新 A1
+2. 進「電商匯入中心」→「販賣機」自訂商店
+3. 上傳 Excel
+4. 系統自動比對欄位 → 批次建立銷貨單
+5. 檢查無誤 → 確認
+
+📌 「電商匯入中心」雖然叫電商，但官方支援任何外部來源
+📌 需一次性設定「販賣機」自訂商店的欄位對應`,
+        comments: []
+      },
+      // Before/After 示意
+      {
+        id: "s-before",
+        category: "BEFORE",
+        title: "現況：手動建銷貨單",
+        status: "confirmed",
+        col: 0, row: 2,
+        next: ["s-after"],
+        mockup: "sean-before",
+        content: `會計現在的痛苦流程：
+1. 看 LINE 群組司機回報（一大段文字）
+2. 肉眼找出地點、數量、金額
+3. 開 A1 → 選客戶（V10067 微風松高香堤）
+4. 選業務（B01 陳翔）
+5. 選品號（RAN00003 販賣機混和產品）
+6. 手動輸入數量 268、金額 11,340
+7. 儲存 → 再開下一筆
+每筆約 2-3 分鐘 × 每月數百筆 = 大量時間`,
+        comments: []
+      },
+      {
+        id: "s-after",
+        category: "AFTER",
+        title: "自動化後：批次匯入",
+        status: "confirmed",
+        col: 2, row: 2,
+        next: [],
+        mockup: "sean-after",
+        content: `自動化後會計只需：
+1. 打開 Google Drive（或儀表板）
+2. 下載/匯出今日 Excel
+3. 上傳 A1 電商匯入中心
+4. 一鍵批次轉銷貨單
+
+每天只花 2 分鐘，不再逐筆手建`,
+        comments: []
+      }
+    ]
   }
 };
