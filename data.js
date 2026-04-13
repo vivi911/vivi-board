@@ -561,6 +561,7 @@ BA照片流程：
         status: "discuss",
         col: 4, row: 0,
         next: ["s-flow5"],
+        mockup: "sean-option-a",
         content: `每日自動產出一份 A1 格式 Excel 存 Google Drive
 
 會計流程：
@@ -578,8 +579,9 @@ BA照片流程：
         category: "路徑B",
         title: "方案 B：儀表板勾選匯出",
         status: "discuss",
-        col: 4, row: 1,
+        col: 6, row: 0,
         next: ["s-flow5"],
+        mockup: "sean-option-b",
         content: `會計打開網頁儀表板，即時看到所有銷貨：
 
 ☑️ 微風松高｜268罐｜$11,340｜Gary  → 反灰
@@ -598,7 +600,7 @@ BA照片流程：
         category: "流程5",
         title: "會計上傳 A1 → 批次轉銷貨單",
         status: "confirmed",
-        col: 5, row: 0,
+        col: 8, row: 0,
         next: [],
         content: `會計拿到 Excel 後：
 
@@ -618,7 +620,7 @@ BA照片流程：
         category: "BEFORE",
         title: "現況：手動建銷貨單",
         status: "confirmed",
-        col: 0, row: 3,
+        col: 0, row: 6,
         next: ["s-after"],
         mockup: "sean-before",
         content: `會計現在的痛苦流程：
@@ -637,7 +639,7 @@ BA照片流程：
         category: "AFTER",
         title: "自動化後：批次匯入",
         status: "confirmed",
-        col: 3, row: 3,
+        col: 3, row: 6,
         next: [],
         mockup: "sean-after",
         content: `自動化後會計只需：
