@@ -24,6 +24,36 @@ const GAP_Y = 160;
 const OFFSET_X = 40;
 const OFFSET_Y = 40;
 
+// ===== 專案角色設定 =====
+const PROJECT_ROLES = {
+  "meili-emr": [
+    { value: "品牌商", label: "品牌商（美力時尚）" },
+    { value: "開發商", label: "開發商（采盟）" },
+    { value: "POS商", label: "POS商（凱惠）" }
+  ],
+  "sean-vending": [
+    { value: "客戶", label: "客戶（Sean 團隊）" },
+    { value: "開發商", label: "開發商（goaskvivi）" }
+  ]
+};
+
+function initLoginRoles() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const proj = urlParams.get('project');
+  const roles = PROJECT_ROLES[proj] || PROJECT_ROLES["meili-emr"];
+  const container = document.getElementById('role-options');
+  container.innerHTML = roles.map((r, i) => `
+    <label class="role-option">
+      <input type="radio" name="role" value="${r.value}" ${i === 0 ? 'checked' : ''} onchange="onRoleChange()" />
+      <span class="role-label">${r.label}</span>
+    </label>
+  `).join('');
+  onRoleChange();
+}
+
+// 頁面載入時初始化登入角色
+document.addEventListener('DOMContentLoaded', initLoginRoles);
+
 // ===== 登入 =====
 let boardUsers = []; // Firestore 已註冊使用者
 
