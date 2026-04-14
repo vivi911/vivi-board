@@ -519,16 +519,19 @@ function renderComments(card) {
     list.innerHTML = '<div class="no-comments">尚無留言，留下第一則留言吧</div>';
     return;
   }
-  list.innerHTML = card.comments.map(c => `
+  list.innerHTML = card.comments.map(c => {
+    const isOwn = c.author === currentUser.name;
+    return `
     <div class="comment">
       <div class="comment-meta">
         <span class="comment-author">${escapeHtml(c.author)}</span>
         <span class="comment-role">（${escapeHtml(c.role)}）</span>
         <span class="comment-time">${c.time}</span>
+        ${isOwn ? `<span class="comment-edit-btn" onclick="startEditComment('${c.id}')">編輯</span>` : ''}
       </div>
-      <div class="comment-body">${escapeHtml(c.text)}</div>
-    </div>
-  `).join('');
+      <div class="comment-body" id="comment-body-${c.id}">${escapeHtml(c.text)}</div>
+    </div>`;
+  }).join('');
   list.scrollTop = list.scrollHeight;
 }
 
@@ -569,6 +572,55 @@ async function addComment() {
     });
   } catch (e) {
     console.warn('留言寫入失敗', e);
+  }
+}
+
+function startEditComment(commentId) {
+  const project = PROJECTS[currentProject];
+  const card = project.cards.find(c => c.id === currentCardId);
+  if (!card) return;
+  const comment = card.comments.find(c => c.id === commentId);
+  if (!comment) return;
+
+  const bodyEl = document.getElementById('comment-body-' + commentId);
+  if (!bodyEl) return;
+
+  bodyEl.innerHTML = `
+    <textarea class="comment-edit-textarea" id="comment-edit-${commentId}">${escapeHtml(comment.text)}</textarea>
+    <div class="comment-edit-actions">
+      <button class="comment-save-btn" onclick="saveEditComment('${commentId}')">儲存</button>
+      <button class="comment-cancel-btn" onclick="cancelEditComment()">取消</button>
+    </div>`;
+  const ta = document.getElementById('comment-edit-' + commentId);
+  ta.focus();
+  ta.setSelectionRange(ta.value.length, ta.value.length);
+}
+
+function cancelEditComment() {
+  const project = PROJECTS[currentProject];
+  const card = project.cards.find(c => c.id === currentCardId);
+  if (card) renderComments(card);
+}
+
+async function saveEditComment(commentId) {
+  const ta = document.getElementById('comment-edit-' + commentId);
+  if (!ta) return;
+  const newText = ta.value.trim();
+  if (!newText) return;
+
+  const project = PROJECTS[currentProject];
+  const card = project.cards.find(c => c.id === currentCardId);
+  if (!card) return;
+  const comment = card.comments.find(c => c.id === commentId);
+  if (!comment) return;
+
+  comment.text = newText;
+  renderComments(card);
+
+  try {
+    await db.collection('board_comments').doc(commentId).update({ text: newText });
+  } catch (e) {
+    console.warn('編輯留言失敗', e);
   }
 }
 
