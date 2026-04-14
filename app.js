@@ -151,27 +151,25 @@ async function showApp() {
   document.getElementById('app').style.display = 'block';
   document.getElementById('user-badge').textContent = `${currentUser.name}（${currentUser.role}）`;
 
-  // 檢查 URL 參數是否鎖定專案
+  // 檢查 URL 參數鎖定專案（必須帶 ?project= 才能進入）
   const urlParams = new URLSearchParams(window.location.search);
   const lockedProject = urlParams.get('project');
 
-  // 填充專案選單
+  // 沒帶 project 參數 → 導向第一個專案（避免看到所有專案選單）
+  if (!lockedProject || !PROJECTS[lockedProject]) {
+    const defaultKey = Object.keys(PROJECTS)[0];
+    window.location.search = '?project=' + defaultKey;
+    return;
+  }
+
+  // 填充專案選單（鎖定單一專案）
   const select = document.getElementById('project-select');
   select.innerHTML = '';
-  const projectKeys = lockedProject && PROJECTS[lockedProject]
-    ? [lockedProject]
-    : Object.keys(PROJECTS);
-  for (const key of projectKeys) {
-    const proj = PROJECTS[key];
-    const opt = document.createElement('option');
-    opt.value = key;
-    opt.textContent = proj.name;
-    select.appendChild(opt);
-  }
-  // 鎖定時隱藏選單
-  if (lockedProject && PROJECTS[lockedProject]) {
-    select.style.display = 'none';
-  }
+  const opt = document.createElement('option');
+  opt.value = lockedProject;
+  opt.textContent = PROJECTS[lockedProject].name;
+  select.appendChild(opt);
+  select.style.display = 'none';
 
   // 從 Firestore 載入資料（任一失敗不影響其他）
   await loadFromFirestore().catch(e => console.warn('載入卡片/留言失敗', e));
