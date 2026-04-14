@@ -464,7 +464,7 @@ BA照片流程：
         { text: "一則訊息可能包含多台機器回報（如同時報兩個地點），AI 需拆成多筆銷貨單 —— 確認是否常見", done: false },
         { text: "品號是否永遠用 RAN00003？還是有些回報需用 RAN00001 盲玩(24)、RAN00002 盲玩(30)、RAN00004 入金、RAN00005 電子支付？", done: false },
         { text: "司機回報群組有幾個？Bot 需加入幾個群？", done: false },
-        { text: "LINE OA 帳號：用 goaskvivi 默默的？還是 Sean 自己開一個？", done: false },
+        { text: "LINE OA 帳號：使用默默小幫手", done: true },
         { text: "Google Drive 共用資料夾用誰的帳號？goaskvivi 還是 Sean 公司？", done: false }
       ],
       infrastructure: [

@@ -759,8 +759,8 @@ async function addDecision() {
 let myNotes = [];
 
 async function loadNotes() {
+  const projId = currentProject || Object.keys(PROJECTS)[0];
   try {
-    const projId = currentProject || Object.keys(PROJECTS)[0];
     const snap = await db.collection('board_notes')
       .where('project_id', '==', projId)
       .where('author', '==', currentUser.name)
@@ -769,8 +769,20 @@ async function loadNotes() {
     myNotes = [];
     snap.forEach(doc => myNotes.push({ id: doc.id, ...doc.data() }));
   } catch (e) {
-    console.warn('載入筆記失敗', e);
-    myNotes = [];
+    console.error('載入筆記失敗（嘗試無排序查詢）', e);
+    // fallback: 不排序，避免缺 composite index 時完全載不到
+    try {
+      const snap2 = await db.collection('board_notes')
+        .where('project_id', '==', projId)
+        .where('author', '==', currentUser.name)
+        .get();
+      myNotes = [];
+      snap2.forEach(doc => myNotes.push({ id: doc.id, ...doc.data() }));
+      myNotes.sort((a, b) => (b.created_at?.seconds || 0) - (a.created_at?.seconds || 0));
+    } catch (e2) {
+      console.error('筆記 fallback 也失敗', e2);
+      myNotes = [];
+    }
   }
 }
 
@@ -784,7 +796,7 @@ function subscribeNotes() {
       myNotes = [];
       snapshot.forEach(doc => myNotes.push({ id: doc.id, ...doc.data() }));
       renderNotesList();
-    }, e => console.warn('筆記訂閱失敗', e));
+    }, e => console.error('筆記訂閱失敗（可能需要建立 Firestore composite index）', e));
 }
 
 function renderNotesList() {
@@ -817,13 +829,16 @@ async function addNote() {
   textarea.value = '';
 
   try {
-    await db.collection('board_notes').add({
+    const docRef = await db.collection('board_notes').add({
       project_id: currentProject,
       date: date,
       text: text,
       author: currentUser.name,
       created_at: firebase.firestore.FieldValue.serverTimestamp()
     });
+    // 立即顯示，不依賴 subscription（可能缺 composite index）
+    myNotes.unshift({ id: docRef.id, date, text, author: currentUser.name });
+    renderNotesList();
   } catch (e) {
     console.warn('新增筆記失敗', e);
   }
@@ -832,6 +847,8 @@ async function addNote() {
 async function deleteNote(noteId) {
   try {
     await db.collection('board_notes').doc(noteId).delete();
+    myNotes = myNotes.filter(n => n.id !== noteId);
+    renderNotesList();
   } catch (e) {
     console.warn('刪除筆記失敗', e);
   }
