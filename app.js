@@ -9,6 +9,12 @@ firebase.initializeApp({
 });
 const db = firebase.firestore();
 
+// 匿名登入，確保 Firestore client 有 auth context
+const firebaseAuth = firebase.auth();
+let firebaseAuthReady = firebaseAuth.signInAnonymously().catch(e => {
+  console.warn('Firebase 匿名登入失敗（Firestore 讀寫可能受限）', e);
+});
+
 // ===== 全域狀態 =====
 let currentUser = { name: '', role: '' };
 let currentProject = null;
@@ -150,6 +156,9 @@ async function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   document.getElementById('user-badge').textContent = `${currentUser.name}（${currentUser.role}）`;
+
+  // 等 Firebase Auth 準備好
+  await firebaseAuthReady;
 
   // 檢查 URL 參數鎖定專案（必須帶 ?project= 才能進入）
   const urlParams = new URLSearchParams(window.location.search);
@@ -724,6 +733,11 @@ document.addEventListener('keydown', (e) => {
   if (e.target.id === 'comment-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
     e.preventDefault();
     addComment();
+  }
+  // 筆記框：選字中 Enter 確認字，非選字時 Enter 送出
+  if (e.target.id === 'note-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+    e.preventDefault();
+    addNote();
   }
   if (e.target.id === 'decision-text' && e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
