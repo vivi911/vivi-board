@@ -163,7 +163,7 @@ async function showApp() {
       <div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666;">
         <div style="text-align:center;">
           <h2 style="color:#333;">找不到專案</h2>
-          <p>請使用正確的專案連結進入看板</p>
+          <p>請找 Vivi 索取專案看板網址</p>
         </div>
       </div>`;
     return;
