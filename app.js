@@ -541,7 +541,7 @@ function renderComments(card) {
         <span class="comment-author">${escapeHtml(c.author)}</span>
         <span class="comment-role">（${escapeHtml(c.role)}）</span>
         <span class="comment-time">${c.time}</span>
-        ${isOwn ? `<span class="comment-edit-btn" onclick="startEditComment('${c.id}')">編輯</span>` : ''}
+        ${isOwn ? `<span class="comment-edit-btn" onclick="startEditComment('${c.id}')">編輯</span><span class="comment-delete-btn" onclick="deleteComment('${c.id}')">刪除</span>` : ''}
       </div>
       <div class="comment-body" id="comment-body-${c.id}">${escapeHtml(c.text)}</div>
     </div>`;
@@ -638,6 +638,21 @@ async function saveEditComment(commentId) {
   }
 }
 
+async function deleteComment(commentId) {
+  if (!confirm('確定刪除這則留言？')) return;
+  const project = PROJECTS[currentProject];
+  const card = project.cards.find(c => c.id === currentCardId);
+  if (!card) return;
+  card.comments = card.comments.filter(c => c.id !== commentId);
+  renderComments(card);
+  renderBoard();
+  try {
+    await db.collection('board_comments').doc(commentId).delete();
+  } catch (e) {
+    console.warn('刪除留言失敗', e);
+  }
+}
+
 // ===== 縮放 + 平移 =====
 let panX = 0, panY = 0;
 
@@ -727,17 +742,24 @@ document.addEventListener('wheel', (e) => {
   });
 })();
 
-// Enter 送出留言
+// 追蹤 IME 選字狀態
+let imeComposing = false;
+document.addEventListener('compositionstart', () => { imeComposing = true; });
+document.addEventListener('compositionend', () => { imeComposing = false; });
+
+// Enter 送出（用 keyup 避免 IME composing 問題）
+document.addEventListener('keyup', (e) => {
+  if (e.key !== 'Enter' || e.shiftKey || imeComposing) return;
+  if (e.target.id === 'comment-text') { addComment(); }
+  if (e.target.id === 'note-text') { addNote(); }
+});
+
+// 阻止 Enter 在 textarea 產生換行（keydown 階段）
 document.addEventListener('keydown', (e) => {
-  // 留言框：選字中 Enter 確認字，非選字時 Enter 送出
-  if (e.target.id === 'comment-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
-    e.preventDefault();
-    addComment();
-  }
-  // 筆記框：選字中 Enter 確認字，非選字時 Enter 送出
-  if (e.target.id === 'note-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
-    e.preventDefault();
-    addNote();
+  if (e.key === 'Enter' && !e.shiftKey && !imeComposing && !e.isComposing) {
+    if (e.target.id === 'comment-text' || e.target.id === 'note-text') {
+      e.preventDefault();
+    }
   }
   if (e.target.id === 'decision-text' && e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
@@ -963,7 +985,7 @@ function renderBrief() {
     <div class="brief-section-title">我的筆記 <span class="brief-private-hint">僅個人看到</span></div>
     <div id="notes-list"></div>
     <div class="brief-decision-input">
-      <textarea id="note-text" placeholder="記下你的想法或備忘..." rows="2"></textarea>
+      <input type="text" id="note-text" placeholder="記下你的想法或備忘...">
       <button onclick="addNote()">新增筆記</button>
       <div style="clear:both"></div>
     </div>

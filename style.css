@@ -809,7 +809,8 @@ body {
   margin-top: 8px;
 }
 
-.brief-decision-input textarea {
+.brief-decision-input textarea,
+.brief-decision-input input[type="text"] {
   width: 100%;
   padding: 8px 10px;
   background: var(--bg-canvas);
@@ -820,10 +821,12 @@ body {
   color: var(--text-primary);
   resize: none;
   outline: none;
+  box-sizing: border-box;
   transition: all 0.2s;
 }
 
-.brief-decision-input textarea:focus {
+.brief-decision-input textarea:focus,
+.brief-decision-input input[type="text"]:focus {
   border-color: var(--gold);
   box-shadow: var(--shadow-gold);
 }
@@ -2048,15 +2051,15 @@ body {
   line-height: 1.6;
 }
 
-.comment-edit-btn {
+.comment-edit-btn, .comment-delete-btn {
   font-size: 11px;
-  color: var(--primary);
   cursor: pointer;
   margin-left: 8px;
 }
-.comment-edit-btn:hover {
-  text-decoration: underline;
-}
+.comment-edit-btn { color: var(--primary); }
+.comment-delete-btn { color: #999; }
+.comment-edit-btn:hover { text-decoration: underline; }
+.comment-delete-btn:hover { color: #E53935; text-decoration: underline; }
 .comment-edit-textarea {
   width: 100%;
   min-height: 60px;
