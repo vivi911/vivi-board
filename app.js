@@ -826,7 +826,6 @@ async function addNote() {
 
   const now = new Date();
   const date = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
-  textarea.value = '';
 
   try {
     const docRef = await db.collection('board_notes').add({
@@ -836,11 +835,12 @@ async function addNote() {
       author: currentUser.name,
       created_at: firebase.firestore.FieldValue.serverTimestamp()
     });
-    // 立即顯示，不依賴 subscription（可能缺 composite index）
+    textarea.value = '';
     myNotes.unshift({ id: docRef.id, date, text, author: currentUser.name });
     renderNotesList();
   } catch (e) {
-    console.warn('新增筆記失敗', e);
+    console.error('新增筆記失敗', e);
+    alert('筆記儲存失敗：' + e.message);
   }
 }
 
