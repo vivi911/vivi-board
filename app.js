@@ -155,10 +155,17 @@ async function showApp() {
   const urlParams = new URLSearchParams(window.location.search);
   const lockedProject = urlParams.get('project');
 
-  // 沒帶 project 參數 → 導向第一個專案（避免看到所有專案選單）
+  // 沒帶正確 project 參數 → 顯示錯誤，不讓進入
   if (!lockedProject || !PROJECTS[lockedProject]) {
-    const defaultKey = Object.keys(PROJECTS)[0];
-    window.location.search = '?project=' + defaultKey;
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'none';
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#666;">
+        <div style="text-align:center;">
+          <h2 style="color:#333;">找不到專案</h2>
+          <p>請使用正確的專案連結進入看板</p>
+        </div>
+      </div>`;
     return;
   }
 
