@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vivi's Board</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260416d">
+<link rel="stylesheet" href="style.css?v=20260416e">
 </head>
 <body>
 
@@ -133,6 +133,26 @@
       <div class="interview-header" id="interview-header"></div>
       <div class="interview-body" id="interview-body"></div>
     </div>
+    <!-- AI 助理浮動泡泡 -->
+    <div id="ai-bubble" class="ai-bubble" onclick="toggleAIPanel()">
+      <span class="ai-bubble-icon" id="ai-bubble-icon">AI</span>
+    </div>
+    <div id="ai-panel" class="ai-panel" style="display:none;">
+      <div class="ai-panel-header">
+        <span class="ai-panel-title">AI 會議助理</span>
+        <button class="ai-panel-close" onclick="toggleAIPanel()">&times;</button>
+      </div>
+      <div class="ai-panel-body" id="ai-panel-body">
+        <div class="ai-panel-empty">按下方麥克風開始錄音<br>錄完後 AI 自動產出重點摘要</div>
+      </div>
+      <div class="ai-panel-footer">
+        <button class="ai-rec-btn" id="ai-rec-btn" onclick="toggleRecording()">
+          <span class="ai-rec-dot" id="ai-rec-dot"></span>
+          <span id="ai-rec-label">開始錄音</span>
+        </button>
+        <span class="ai-rec-timer" id="rec-timer"></span>
+      </div>
+    </div>
   </div>
 
   <!-- ===== 研究 Tab（Phase 2 預留）===== -->
@@ -155,8 +175,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-<script src="data.js?v=20260416d"></script>
-<script src="mockups.js?v=20260416d"></script>
-<script src="app.js?v=20260416d"></script>
+<script src="data.js?v=20260416e"></script>
+<script src="mockups.js?v=20260416e"></script>
+<script src="app.js?v=20260416e"></script>
 </body>
 </html>

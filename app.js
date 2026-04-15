@@ -425,7 +425,6 @@ function renderInterview() {
                oninput="updateInterviewField('meta', this.value)">
       </div>
     </div>
-    ${renderRecordingBar()}
   `;
 
   // Body — 各 section
@@ -508,57 +507,61 @@ let recordingTimer = null;
 let speechRecognition = null;
 let liveTranscript = '';
 
-function renderRecordingBar() {
-  const recordings = interviewData.recordings || [];
-  const hasRecordings = recordings.length > 0;
-
-  return `
-    <div class="recording-bar">
-      <div class="recording-controls">
-        <button class="rec-btn" id="rec-btn" onclick="toggleRecording()">
-          <span class="rec-dot" id="rec-dot"></span>
-          <span id="rec-label">開始錄音</span>
-        </button>
-        <span class="rec-timer" id="rec-timer"></span>
-      </div>
-      <div class="rec-status" id="rec-status"></div>
-      ${hasRecordings ? `
-        <div class="recording-list" id="recording-list">
-          ${recordings.map((r, i) => `
-            <div class="recording-item">
-              <span class="recording-item-icon">&#x1f3a4;</span>
-              <span class="recording-item-name">${escapeHtml(r.name || ('錄音 ' + (i + 1)))}</span>
-              <span class="recording-item-duration">${escapeHtml(r.duration || '')}</span>
-              <button class="rec-play-btn" onclick="loadAndPlayRecording('${r.docId}', this)">載入播放</button>
-              ${r.transcript ? `<button class="rec-play-btn" onclick="showTranscript('${r.docId}')">查看文字</button>` : ''}
-            </div>
-            ${r.summary ? `<div class="recording-summary">${escapeHtml(r.summary)}</div>` : ''}
-          `).join('')}
-        </div>
-      ` : ''}
-    </div>
-  `;
+// ===== AI 浮動面板 =====
+function toggleAIPanel() {
+  const panel = document.getElementById('ai-panel');
+  const bubble = document.getElementById('ai-bubble');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'flex';
+  bubble.style.display = isOpen ? '' : 'none';
+  if (!isOpen) renderAIPanelBody();
 }
 
-async function loadAndPlayRecording(docId, btnEl) {
+function renderAIPanelBody() {
+  const body = document.getElementById('ai-panel-body');
+  const recordings = interviewData.recordings || [];
+
+  if (recordings.length === 0) {
+    body.innerHTML = '<div class="ai-panel-empty">按下方麥克風開始錄音<br>錄完後 AI 自動產出重點摘要</div>';
+    return;
+  }
+
+  body.innerHTML = recordings.slice().reverse().map((r, i) => `
+    <div class="ai-msg ai-msg-user">
+      <div class="ai-msg-meta">${escapeHtml(r.name)} (${escapeHtml(r.duration || '')})</div>
+      <button class="ai-play-btn" data-doc="${r.docId}" onclick="loadAndPlayInPanel('${r.docId}', this)">&#9654; 播放</button>
+      ${r.transcript ? `<div class="ai-msg-transcript">${escapeHtml(r.transcript).substring(0, 100)}${r.transcript.length > 100 ? '...' : ''}</div>` : ''}
+    </div>
+    ${r.summary ? `
+      <div class="ai-msg ai-msg-ai">
+        <div class="ai-msg-label">AI 摘要</div>
+        <div class="ai-msg-content">${escapeHtml(r.summary)}</div>
+      </div>
+    ` : `
+      <div class="ai-msg ai-msg-ai ai-msg-pending">
+        <div class="ai-msg-content">${r.transcript && r.transcript.length > 20 ? 'AI 摘要分析中...' : '逐字稿太短，無法產摘要'}</div>
+      </div>
+    `}
+  `).join('');
+  body.scrollTop = body.scrollHeight;
+}
+
+async function loadAndPlayInPanel(docId, btnEl) {
   btnEl.textContent = '載入中...';
   btnEl.disabled = true;
   try {
     const doc = await db.collection('board_recordings').doc(docId).get();
-    if (!doc.exists) { btnEl.textContent = '找不到錄音'; return; }
-    const data = doc.data().data; // base64 data URL
-    // 替換按鈕為 audio player
-    const container = btnEl.parentElement;
+    if (!doc.exists) { btnEl.textContent = '找不到'; return; }
     const audio = document.createElement('audio');
     audio.controls = true;
-    audio.src = data;
-    audio.style.height = '28px';
-    audio.style.flex = '1';
+    audio.src = doc.data().data;
+    audio.style.width = '100%';
+    audio.style.height = '32px';
+    audio.style.marginTop = '6px';
     btnEl.replaceWith(audio);
     audio.play();
   } catch (e) {
-    console.error('載入錄音失敗', e);
-    btnEl.textContent = '載入失敗';
+    btnEl.textContent = '失敗';
     btnEl.disabled = false;
   }
 }
@@ -594,13 +597,15 @@ async function startRecording() {
     recordingStartTime = Date.now();
 
     // 更新 UI
-    const btn = document.getElementById('rec-btn');
-    const dot = document.getElementById('rec-dot');
-    const label = document.getElementById('rec-label');
+    const btn = document.getElementById('ai-rec-btn');
+    const dot = document.getElementById('ai-rec-dot');
+    const label = document.getElementById('ai-rec-label');
     const timer = document.getElementById('rec-timer');
+    const bubbleIcon = document.getElementById('ai-bubble-icon');
     if (btn) btn.classList.add('recording');
     if (dot) dot.classList.add('recording');
     if (label) label.textContent = '停止錄音';
+    if (bubbleIcon) { bubbleIcon.textContent = ''; bubbleIcon.classList.add('recording'); }
 
     recordingTimer = setInterval(() => {
       const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
@@ -669,12 +674,14 @@ function stopSpeechRecognition() {
 function stopRecording() {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.stop();
-    const btn = document.getElementById('rec-btn');
-    const dot = document.getElementById('rec-dot');
-    const label = document.getElementById('rec-label');
+    const btn = document.getElementById('ai-rec-btn');
+    const dot = document.getElementById('ai-rec-dot');
+    const label = document.getElementById('ai-rec-label');
+    const bubbleIcon = document.getElementById('ai-bubble-icon');
     if (btn) btn.classList.remove('recording');
     if (dot) dot.classList.remove('recording');
     if (label) label.textContent = '上傳中...';
+    if (bubbleIcon) { bubbleIcon.textContent = 'AI'; bubbleIcon.classList.remove('recording'); }
   }
 }
 
@@ -726,7 +733,9 @@ async function uploadRecording(blob) {
     interviewData.recordings.push(recEntry);
 
     await saveInterview();
-    renderInterview();
+    renderAIPanelBody();
+    const label2 = document.getElementById('ai-rec-label');
+    if (label2) label2.textContent = '開始錄音';
 
     // 有逐字稿就呼叫 AI 摘要
     if (transcript.length > 20) {
@@ -735,17 +744,12 @@ async function uploadRecording(blob) {
   } catch (e) {
     console.error('上傳錄音失敗', e);
     alert('上傳錄音失敗：' + e.message);
-    const label = document.getElementById('rec-label');
+    const label = document.getElementById('ai-rec-label');
     if (label) label.textContent = '開始錄音';
   }
 }
 
 async function requestAISummary(docId, transcript) {
-  const statusEl = document.getElementById('rec-status');
-  if (statusEl) {
-    statusEl.textContent = 'AI 摘要分析中...';
-    statusEl.style.display = 'block';
-  }
 
   const prompt = `以下是一段會議錄音的逐字稿，請整理成重點摘要（條列式，繁體中文）。
 只保留有價值的重點，去除口語贅詞。如果提到具體需求、痛點、決策、時程、預算，請特別標出。
@@ -772,16 +776,10 @@ ${transcript}`;
     if (rec) {
       rec.summary = summary;
       await saveInterview();
-      renderInterview();
+      renderAIPanelBody();
     }
-
-    if (statusEl) statusEl.style.display = 'none';
   } catch (e) {
     console.warn('AI 摘要失敗', e);
-    if (statusEl) {
-      statusEl.textContent = 'AI 摘要失敗（摘要將在下次開啟時重試）';
-      setTimeout(() => { if (statusEl) statusEl.style.display = 'none'; }, 3000);
-    }
   }
 }
 
