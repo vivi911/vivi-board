@@ -425,11 +425,6 @@ function renderInterview() {
                oninput="updateInterviewField('meta', this.value)">
       </div>
     </div>
-    <div class="interview-opener">
-      <div class="interview-opener-label">開場</div>
-      <textarea class="interview-opener-textarea" placeholder="開場白，例如：「Ming 有提到你們有系統方面的需求，我今天主要想先了解你們的狀況，才能判斷怎麼幫上忙。可以先跟我聊聊現在遇到什麼問題嗎？」"
-                oninput="updateInterviewField('opener', this.value)">${escapeHtml(interviewData.opener || '')}</textarea>
-    </div>
     ${renderRecordingBar()}
   `;
 
@@ -510,6 +505,8 @@ let mediaRecorder = null;
 let audioChunks = [];
 let recordingStartTime = null;
 let recordingTimer = null;
+let speechRecognition = null;
+let liveTranscript = '';
 
 function renderRecordingBar() {
   const recordings = interviewData.recordings || [];
@@ -523,6 +520,11 @@ function renderRecordingBar() {
           <span id="rec-label">開始錄音</span>
         </button>
         <span class="rec-timer" id="rec-timer"></span>
+        <span class="rec-hint" id="rec-hint">錄音同時即時轉文字</span>
+      </div>
+      <div class="rec-transcript-box" id="rec-transcript-box" style="display:none;">
+        <div class="rec-transcript-label">即時轉文字</div>
+        <div class="rec-transcript-text" id="rec-transcript-text"></div>
       </div>
       ${hasRecordings ? `
         <div class="recording-list" id="recording-list">
@@ -532,7 +534,9 @@ function renderRecordingBar() {
               <span class="recording-item-name">${escapeHtml(r.name || ('錄音 ' + (i + 1)))}</span>
               <span class="recording-item-duration">${escapeHtml(r.duration || '')}</span>
               <button class="rec-play-btn" onclick="loadAndPlayRecording('${r.docId}', this)">載入播放</button>
+              ${r.transcript ? `<button class="rec-play-btn" onclick="showTranscript('${r.docId}')">查看文字</button>` : ''}
             </div>
+            ${r.summary ? `<div class="recording-summary">${escapeHtml(r.summary)}</div>` : ''}
           `).join('')}
         </div>
       ` : ''}
@@ -575,6 +579,7 @@ async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     audioChunks = [];
+    liveTranscript = '';
     mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
 
     mediaRecorder.ondataavailable = (e) => {
@@ -584,11 +589,12 @@ async function startRecording() {
     mediaRecorder.onstop = async () => {
       stream.getTracks().forEach(t => t.stop());
       clearInterval(recordingTimer);
+      stopSpeechRecognition();
       const blob = new Blob(audioChunks, { type: 'audio/webm' });
       await uploadRecording(blob);
     };
 
-    mediaRecorder.start(1000); // 每秒收一次 chunk
+    mediaRecorder.start(1000);
     recordingStartTime = Date.now();
 
     // 更新 UI
@@ -596,9 +602,13 @@ async function startRecording() {
     const dot = document.getElementById('rec-dot');
     const label = document.getElementById('rec-label');
     const timer = document.getElementById('rec-timer');
+    const hint = document.getElementById('rec-hint');
+    const transcriptBox = document.getElementById('rec-transcript-box');
     if (btn) btn.classList.add('recording');
     if (dot) dot.classList.add('recording');
     if (label) label.textContent = '停止錄音';
+    if (hint) hint.style.display = 'none';
+    if (transcriptBox) transcriptBox.style.display = 'block';
 
     recordingTimer = setInterval(() => {
       const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
@@ -607,9 +617,69 @@ async function startRecording() {
       if (timer) timer.textContent = `${mm}:${ss}`;
     }, 1000);
 
+    // 啟動語音辨識
+    startSpeechRecognition();
+
   } catch (e) {
     console.error('錄音失敗', e);
     alert('無法開啟麥克風，請確認瀏覽器權限');
+  }
+}
+
+function startSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    console.warn('瀏覽器不支援語音辨識');
+    return;
+  }
+
+  speechRecognition = new SpeechRecognition();
+  speechRecognition.lang = 'zh-TW';
+  speechRecognition.continuous = true;
+  speechRecognition.interimResults = true;
+
+  let finalTranscript = '';
+
+  speechRecognition.onresult = (event) => {
+    let interim = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const text = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalTranscript += text + '\n';
+      } else {
+        interim = text;
+      }
+    }
+    liveTranscript = finalTranscript;
+    const el = document.getElementById('rec-transcript-text');
+    if (el) {
+      el.textContent = finalTranscript + (interim ? '...' + interim : '');
+      el.scrollTop = el.scrollHeight;
+    }
+  };
+
+  speechRecognition.onerror = (e) => {
+    console.warn('語音辨識錯誤', e.error);
+    // no-speech 或 network 錯誤時自動重啟
+    if (e.error === 'no-speech' || e.error === 'network') {
+      try { speechRecognition.start(); } catch (_) {}
+    }
+  };
+
+  speechRecognition.onend = () => {
+    // 錄音還在進行中就自動重啟辨識
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      try { speechRecognition.start(); } catch (_) {}
+    }
+  };
+
+  speechRecognition.start();
+}
+
+function stopSpeechRecognition() {
+  if (speechRecognition) {
+    try { speechRecognition.stop(); } catch (_) {}
+    speechRecognition = null;
   }
 }
 
@@ -645,7 +715,9 @@ async function uploadRecording(blob) {
 
     const recName = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 錄音`;
 
-    // 錄音太長（> 800KB base64）存獨立 doc，避免撐爆 interview doc
+    const transcript = liveTranscript.trim();
+
+    // 錄音存獨立 doc
     const docId = `${projId}_${Date.now()}`;
     await db.collection('board_recordings').doc(docId).set({
       project_id: projId,
@@ -653,18 +725,27 @@ async function uploadRecording(blob) {
       duration: `${mm}:${ss}`,
       author: currentUser.name,
       data: base64,
+      transcript: transcript,
       created_at: firebase.firestore.FieldValue.serverTimestamp()
     });
 
-    // interview 只存 metadata（不存 base64）
+    // interview 只存 metadata
     if (!interviewData.recordings) interviewData.recordings = [];
-    interviewData.recordings.push({
+    const recEntry = {
       docId: docId,
       name: recName,
       duration: `${mm}:${ss}`,
       author: currentUser.name,
+      transcript: transcript,
       created_at: now.toISOString()
-    });
+    };
+
+    // 有逐字稿就自動產摘要
+    if (transcript.length > 20) {
+      recEntry.summary = generateLocalSummary(transcript);
+    }
+
+    interviewData.recordings.push(recEntry);
 
     await saveInterview();
     renderInterview();
@@ -674,6 +755,23 @@ async function uploadRecording(blob) {
     const label = document.getElementById('rec-label');
     if (label) label.textContent = '開始錄音';
   }
+}
+
+function generateLocalSummary(transcript) {
+  // 簡易摘要：取每段的前 30 字，最多 5 段
+  const lines = transcript.split('\n').filter(l => l.trim().length > 5);
+  if (lines.length === 0) return '';
+  const bullets = lines.slice(0, 8).map(l => {
+    const trimmed = l.trim();
+    return trimmed.length > 50 ? trimmed.substring(0, 50) + '...' : trimmed;
+  });
+  return bullets.join('\n');
+}
+
+function showTranscript(docId) {
+  const rec = (interviewData.recordings || []).find(r => r.docId === docId);
+  if (!rec || !rec.transcript) return;
+  alert(rec.transcript);
 }
 
 // ===== 渲染白板 =====

@@ -2714,6 +2714,47 @@ body {
   cursor: default;
 }
 
+.rec-hint {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  margin-left: auto;
+}
+
+.rec-transcript-box {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.rec-transcript-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.rec-transcript-text {
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.8;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+.recording-summary {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.6;
+  padding: 6px 12px 6px 38px;
+  white-space: pre-wrap;
+  border-left: 2px solid var(--gold);
+  margin-left: 12px;
+}
+
 /* 訪談 meta 輸入 */
 .interview-meta-input {
   width: 100%;
