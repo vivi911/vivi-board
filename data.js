@@ -1,3 +1,69 @@
+// ===== Tab 設定 =====
+const PROJECT_TABS = {
+  // 預設 Tab（所有專案都有）
+  default: [
+    { id: 'interview', label: '訪談', icon: '📋' },
+    { id: 'research', label: '研究', icon: '🔍' },
+    { id: 'architecture', label: '架構', icon: '🏗' },
+    { id: 'spec', label: '規格', icon: '📄' }
+  ]
+};
+
+// ===== 訪談表單模板 =====
+const INTERVIEW_TEMPLATE = {
+  sections: [
+    {
+      id: 'attendees',
+      number: 0,
+      title: '出席者',
+      placeholder: '姓名 / 職稱 / 角色（決策者？使用者？IT？）',
+      hint: null
+    },
+    {
+      id: 'pain_points',
+      number: 1,
+      title: '痛點：現在最卡什麼？',
+      placeholder: '記下對方主動提到的問題、抱怨、困擾...\n\n例：居留證到期常漏追、6 據點資料各管各的...',
+      hint: '追問：「這件事卡住的時候，通常誰最頭痛？頻率多高？」'
+    },
+    {
+      id: 'current_flow',
+      number: 2,
+      title: '現況：目前怎麼做的？',
+      placeholder: '現在用什麼工具？Excel / 紙本 / 既有系統？\n哪些環節是人工？哪些已經有系統？\n有 IT 人員嗎？',
+      hint: '追問：「一個案件從接單到移工到任，可以跟我走一遍流程嗎？」'
+    },
+    {
+      id: 'expectations',
+      number: 3,
+      title: '期待：你希望變成怎樣？',
+      placeholder: '對方心中的理想狀態\n有提到特定功能？還是只是「不要再手動」？\n有沒有預期的時程壓力？',
+      hint: '追問：「如果有一個系統，你最希望它先解決哪件事？」'
+    },
+    {
+      id: 'scope',
+      number: 4,
+      title: '範圍：哪些先做？哪些不急？',
+      placeholder: '先做核心流程（MVP），複雜功能後面再加\n可以分幾個 Phase 逐步上線\n系統是否需要與其他平台串接？',
+      hint: '追問：「如果第一版只能做三件事，你選哪三件？」'
+    },
+    {
+      id: 'decision',
+      number: 5,
+      title: '決策：誰拍板？時程？預算？',
+      placeholder: '決策者是誰？需要其他人同意嗎？\n希望什麼時候上線？有硬期限嗎？\n預算區間？有其他報價在比較嗎？',
+      hint: '追問：「這件事是你可以直接決定，還是需要老闆或董事會同意？」'
+    },
+    {
+      id: 'other',
+      number: 6,
+      title: '其他備註',
+      placeholder: '會議中提到的其他重要資訊...',
+      hint: null
+    }
+  ]
+};
+
 // ===== 專案資料 =====
 
 const PROJECTS = {
@@ -29,7 +95,7 @@ const PROJECTS = {
         { role: "POS 廠商", name: "凱惠", org: "凱惠資訊" },
         { role: "業主", name: "美力時尚醫美", org: "bebetterone.com" }
       ],
-      locations: ["站前4F", "站前11F", "忠孝7F (7FA)", "忠孝健康7F (7FB)"],
+      locations: ["(微整)站前4F", "(體雕)站前11F", "(微整)忠孝7F", "(微整)忠孝健康7F", "(體雕)忠孝國際3F"],
       phases: [
         { id: "P1", name: "報到+基本資料", status: "current" },
         { id: "P2", name: "邀約取代 GSheet", status: "planned" },
@@ -657,5 +723,38 @@ BA照片流程：
         comments: []
       }
     ]
+  },
+
+  "asia-pacific": {
+    name: "亞太資源管理顧問 — 外籍移工管理系統",
+    brief: {
+      background: `亞太資源管理顧問（股）公司，2002 年成立，6 據點、50 人、資本額 1,600 萬，AAAA 評鑑、ISO 9001。
+主營外籍移工仲介一條龍服務：需求接單→海外招募→文件申報→入台安置→在職管理→續約/轉換→離境返鄉。
+目前多數環節仰賴 Excel / 紙本 / 人工追蹤，需要系統化管理。`,
+      pain_points: [],
+      roles: [
+        { name: "管理層", desc: "營運決策、跨據點管理" },
+        { name: "業務", desc: "接單、雇主端需求對接" },
+        { name: "文件專員", desc: "勞動部申報、體檢/護照/簽證追蹤" },
+        { name: "翻譯/安置", desc: "入台接機、住宿安排、職前訓練" },
+        { name: "在職管理", desc: "定期訪視、問題處理、居留證追蹤" }
+      ],
+      team: [
+        { role: "品牌商", name: "亞太資源", org: "亞太資源管理顧問（股）" },
+        { role: "開發商", name: "Sam Hsu", org: "采盟科技" },
+        { role: "專案管理", name: "Vivi", org: "goaskvivi" }
+      ],
+      locations: ["台北總公司", "桃園", "台中", "台南", "高雄", "花蓮"],
+      phases: [
+        { id: "P0", name: "需求訪談", status: "current", note: "2026/04/16 第一次訪談" },
+        { id: "P1", name: "規格確認", status: "planned" },
+        { id: "P2", name: "開發建置", status: "planned" },
+        { id: "P3", name: "測試上線", status: "planned" }
+      ],
+      apis: { existing: [], gaps: [] },
+      discussions: [],
+      infrastructure: []
+    },
+    cards: []
   }
 };

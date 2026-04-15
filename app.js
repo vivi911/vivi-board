@@ -19,6 +19,7 @@ let firebaseAuthReady = firebaseAuth.signInAnonymously().catch(e => {
 let currentUser = { name: '', role: '' };
 let currentProject = null;
 let currentCardId = null;
+let currentTab = 'architecture'; // 預設 Tab
 let zoomLevel = 1;
 const ZOOM_MIN = 0.3;
 const ZOOM_MAX = 1.5;
@@ -40,6 +41,10 @@ const PROJECT_ROLES = {
   "sean-vending": [
     { value: "客戶", label: "客戶（Sean 團隊）" },
     { value: "開發商", label: "開發商（goaskvivi）" }
+  ],
+  "asia-pacific": [
+    { value: "品牌商", label: "品牌商（亞太資源）" },
+    { value: "開發商", label: "開發商（采盟科技）" }
   ]
 };
 
@@ -187,6 +192,14 @@ async function showApp() {
   select.appendChild(opt);
   select.style.display = 'none';
 
+  // 讀取 tab URL 參數
+  const tabParam = urlParams.get('tab');
+  if (tabParam && ['interview', 'research', 'architecture', 'spec'].includes(tabParam)) {
+    currentTab = tabParam;
+  } else {
+    currentTab = 'architecture';
+  }
+
   // 從 Firestore 載入資料（任一失敗不影響其他）
   await loadFromFirestore().catch(e => console.warn('載入卡片/留言失敗', e));
   await loadDecisions().catch(e => console.warn('載入決議失敗', e));
@@ -197,6 +210,9 @@ async function showApp() {
 
   // 載入專案（鎖定或預設第一個）
   switchProject(lockedProject && PROJECTS[lockedProject] ? lockedProject : Object.keys(PROJECTS)[0]);
+
+  // 切到指定 Tab
+  switchTab(currentTab);
 
   // 訂閱即時更新
   subscribeRealtime();
@@ -307,9 +323,182 @@ function formatTime(date) {
 function switchProject(projectId) {
   currentProject = projectId;
   closePanel();
+  renderTabs();
   renderBrief();
   renderBoard();
   loadStickies().catch(e => console.warn('載入便利貼失敗', e));
+  // 如果在訪談 Tab，載入訪談資料
+  if (currentTab === 'interview') {
+    loadInterview().then(renderInterview);
+  }
+}
+
+// ===== Tab 系統 =====
+function renderTabs() {
+  const tabs = (PROJECT_TABS[currentProject] || PROJECT_TABS.default);
+  const bar = document.getElementById('tab-bar');
+  bar.innerHTML = tabs.map(t => `
+    <button class="tab-btn ${t.id === currentTab ? 'active' : ''}"
+            onclick="switchTab('${t.id}')"
+            data-tab="${t.id}">
+      <span class="tab-icon">${t.icon}</span>${t.label}
+    </button>
+  `).join('');
+}
+
+function switchTab(tabId) {
+  currentTab = tabId;
+
+  // 更新 URL
+  const url = new URL(window.location);
+  if (tabId === 'architecture') {
+    url.searchParams.delete('tab');
+  } else {
+    url.searchParams.set('tab', tabId);
+  }
+  history.replaceState(null, '', url);
+
+  // 更新 Tab 按鈕 active 狀態
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabId);
+  });
+
+  // 切換視圖
+  const views = ['architecture', 'interview', 'research', 'spec'];
+  views.forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.style.display = (v === tabId) ? '' : 'none';
+  });
+
+  // Legend 只在架構 Tab 顯示
+  const legend = document.getElementById('board-legend');
+  if (legend) legend.style.display = (tabId === 'architecture') ? '' : 'none';
+
+  // 載入對應 Tab 的資料
+  if (tabId === 'interview') {
+    loadInterview().then(renderInterview);
+  }
+}
+
+// ===== 訪談系統 =====
+let interviewData = {};
+let interviewSaveTimeout = null;
+
+async function loadInterview() {
+  const projId = currentProject;
+  try {
+    const doc = await db.collection('board_interviews').doc(projId).get();
+    if (doc.exists) {
+      interviewData = doc.data();
+    } else {
+      // 初始化空白訪談
+      interviewData = {
+        project_id: projId,
+        title: PROJECTS[projId] ? PROJECTS[projId].name : projId,
+        date: '',
+        meta: '',
+        opener: '',
+        sections: {}
+      };
+    }
+  } catch (e) {
+    console.warn('載入訪談失敗', e);
+    interviewData = { project_id: projId, sections: {} };
+  }
+}
+
+function renderInterview() {
+  const header = document.getElementById('interview-header');
+  const body = document.getElementById('interview-body');
+  const projName = PROJECTS[currentProject] ? PROJECTS[currentProject].name : currentProject;
+
+  // Header
+  header.innerHTML = `
+    <div class="interview-header-inner">
+      <div class="interview-title">${escapeHtml(interviewData.title || projName)} — 需求訪談筆記</div>
+      <div class="interview-meta">
+        <input type="text" class="interview-meta-input" placeholder="日期 | 會議形式 | 介紹人"
+               value="${escapeHtml(interviewData.meta || '')}"
+               oninput="updateInterviewField('meta', this.value)">
+      </div>
+    </div>
+    <div class="interview-opener">
+      <div class="interview-opener-label">開場</div>
+      <textarea class="interview-opener-textarea" placeholder="開場白，例如：「Ming 有提到你們有系統方面的需求，我今天主要想先了解你們的狀況，才能判斷怎麼幫上忙。可以先跟我聊聊現在遇到什麼問題嗎？」"
+                oninput="updateInterviewField('opener', this.value)">${escapeHtml(interviewData.opener || '')}</textarea>
+    </div>
+  `;
+
+  // Body — 各 section
+  const template = INTERVIEW_TEMPLATE.sections;
+  body.innerHTML = template.map(sec => {
+    const val = (interviewData.sections && interviewData.sections[sec.id]) || '';
+    return `
+    <div class="interview-section">
+      <div class="interview-section-header">
+        <div class="interview-section-number">${sec.number}</div>
+        <div class="interview-section-title">${escapeHtml(sec.title)}</div>
+      </div>
+      ${sec.hint ? `<div class="interview-section-hint">${escapeHtml(sec.hint)}</div>` : ''}
+      <textarea placeholder="${escapeHtml(sec.placeholder)}"
+                oninput="updateInterviewSection('${sec.id}', this.value)">${escapeHtml(val)}</textarea>
+    </div>`;
+  }).join('') + `
+    <div class="interview-save-bar">
+      <div class="interview-save-status" id="interview-save-status"></div>
+      <button class="interview-save-btn" onclick="saveInterviewNow()">儲存</button>
+    </div>
+  `;
+}
+
+function updateInterviewField(field, value) {
+  interviewData[field] = value;
+  scheduleInterviewSave();
+}
+
+function updateInterviewSection(sectionId, value) {
+  if (!interviewData.sections) interviewData.sections = {};
+  interviewData.sections[sectionId] = value;
+  scheduleInterviewSave();
+}
+
+function scheduleInterviewSave() {
+  const statusEl = document.getElementById('interview-save-status');
+  if (statusEl) {
+    statusEl.textContent = '未儲存';
+    statusEl.className = 'interview-save-status';
+  }
+  if (interviewSaveTimeout) clearTimeout(interviewSaveTimeout);
+  interviewSaveTimeout = setTimeout(() => saveInterview(), 3000); // 3 秒自動存
+}
+
+async function saveInterview() {
+  const projId = currentProject;
+  try {
+    await db.collection('board_interviews').doc(projId).set({
+      ...interviewData,
+      project_id: projId,
+      updated_by: currentUser.name,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    const statusEl = document.getElementById('interview-save-status');
+    if (statusEl) {
+      statusEl.textContent = '已儲存';
+      statusEl.className = 'interview-save-status saved';
+    }
+  } catch (e) {
+    console.warn('儲存訪談失敗', e);
+    const statusEl = document.getElementById('interview-save-status');
+    if (statusEl) {
+      statusEl.textContent = '儲存失敗';
+      statusEl.className = 'interview-save-status';
+    }
+  }
+}
+
+async function saveInterviewNow() {
+  if (interviewSaveTimeout) clearTimeout(interviewSaveTimeout);
+  await saveInterview();
 }
 
 // ===== 渲染白板 =====
