@@ -506,7 +506,6 @@ async function saveInterviewNow() {
 }
 
 // ===== 錄音系統 =====
-const storage = firebase.storage();
 let mediaRecorder = null;
 let audioChunks = [];
 let recordingStartTime = null;
@@ -532,13 +531,36 @@ function renderRecordingBar() {
               <span class="recording-item-icon">&#x1f3a4;</span>
               <span class="recording-item-name">${escapeHtml(r.name || ('錄音 ' + (i + 1)))}</span>
               <span class="recording-item-duration">${escapeHtml(r.duration || '')}</span>
-              <audio controls preload="none" src="${escapeHtml(r.url)}"></audio>
+              <button class="rec-play-btn" onclick="loadAndPlayRecording('${r.docId}', this)">載入播放</button>
             </div>
           `).join('')}
         </div>
       ` : ''}
     </div>
   `;
+}
+
+async function loadAndPlayRecording(docId, btnEl) {
+  btnEl.textContent = '載入中...';
+  btnEl.disabled = true;
+  try {
+    const doc = await db.collection('board_recordings').doc(docId).get();
+    if (!doc.exists) { btnEl.textContent = '找不到錄音'; return; }
+    const data = doc.data().data; // base64 data URL
+    // 替換按鈕為 audio player
+    const container = btnEl.parentElement;
+    const audio = document.createElement('audio');
+    audio.controls = true;
+    audio.src = data;
+    audio.style.height = '28px';
+    audio.style.flex = '1';
+    btnEl.replaceWith(audio);
+    audio.play();
+  } catch (e) {
+    console.error('載入錄音失敗', e);
+    btnEl.textContent = '載入失敗';
+    btnEl.disabled = false;
+  }
 }
 
 async function toggleRecording() {
@@ -606,31 +628,46 @@ function stopRecording() {
 async function uploadRecording(blob) {
   const projId = currentProject;
   const now = new Date();
-  const timestamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
-  const fileName = `recordings/${projId}/${timestamp}_${currentUser.name}.webm`;
 
   try {
-    const ref = storage.ref(fileName);
-    await ref.put(blob, { contentType: 'audio/webm' });
-    const url = await ref.getDownloadURL();
+    // 轉 base64
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
 
     // 計算時長
     const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
     const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
     const ss = String(elapsed % 60).padStart(2, '0');
 
-    // 存到 interviewData
+    const recName = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 錄音`;
+
+    // 錄音太長（> 800KB base64）存獨立 doc，避免撐爆 interview doc
+    const docId = `${projId}_${Date.now()}`;
+    await db.collection('board_recordings').doc(docId).set({
+      project_id: projId,
+      name: recName,
+      duration: `${mm}:${ss}`,
+      author: currentUser.name,
+      data: base64,
+      created_at: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // interview 只存 metadata（不存 base64）
     if (!interviewData.recordings) interviewData.recordings = [];
     interviewData.recordings.push({
-      url: url,
-      name: `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 錄音`,
+      docId: docId,
+      name: recName,
       duration: `${mm}:${ss}`,
       author: currentUser.name,
       created_at: now.toISOString()
     });
 
     await saveInterview();
-    renderInterview(); // 重新渲染顯示錄音列表
+    renderInterview();
   } catch (e) {
     console.error('上傳錄音失敗', e);
     alert('上傳錄音失敗：' + e.message);

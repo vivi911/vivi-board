@@ -2692,6 +2692,28 @@ body {
   min-width: 0;
 }
 
+.rec-play-btn {
+  padding: 4px 14px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 14px;
+  color: rgba(255,255,255,0.7);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.rec-play-btn:hover {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+.rec-play-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* 訪談 meta 輸入 */
 .interview-meta-input {
   width: 100%;
