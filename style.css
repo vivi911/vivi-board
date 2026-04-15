@@ -2585,6 +2585,113 @@ body {
   font-weight: 500;
 }
 
+/* ===== 錄音 Bar ===== */
+.recording-bar {
+  margin-top: 16px;
+  padding: 16px 20px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.recording-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rec-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rec-btn:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.3);
+}
+
+.rec-btn.recording {
+  background: rgba(220,50,50,0.2);
+  border-color: rgba(220,50,50,0.4);
+  color: #ff6b6b;
+}
+
+.rec-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  transition: all 0.2s;
+}
+
+.rec-dot.recording {
+  background: #ff4444;
+  animation: rec-pulse 1s infinite;
+}
+
+@keyframes rec-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.rec-timer {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+.recording-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recording-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.recording-item-icon {
+  font-size: 16px;
+}
+
+.recording-item-name {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.recording-item-duration {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  margin-right: 4px;
+}
+
+.recording-item audio {
+  height: 28px;
+  flex: 1;
+  min-width: 0;
+}
+
 /* 訪談 meta 輸入 */
 .interview-meta-input {
   width: 100%;

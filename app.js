@@ -430,6 +430,7 @@ function renderInterview() {
       <textarea class="interview-opener-textarea" placeholder="開場白，例如：「Ming 有提到你們有系統方面的需求，我今天主要想先了解你們的狀況，才能判斷怎麼幫上忙。可以先跟我聊聊現在遇到什麼問題嗎？」"
                 oninput="updateInterviewField('opener', this.value)">${escapeHtml(interviewData.opener || '')}</textarea>
     </div>
+    ${renderRecordingBar()}
   `;
 
   // Body — 各 section
@@ -502,6 +503,140 @@ async function saveInterview() {
 async function saveInterviewNow() {
   if (interviewSaveTimeout) clearTimeout(interviewSaveTimeout);
   await saveInterview();
+}
+
+// ===== 錄音系統 =====
+const storage = firebase.storage();
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingStartTime = null;
+let recordingTimer = null;
+
+function renderRecordingBar() {
+  const recordings = interviewData.recordings || [];
+  const hasRecordings = recordings.length > 0;
+
+  return `
+    <div class="recording-bar">
+      <div class="recording-controls">
+        <button class="rec-btn" id="rec-btn" onclick="toggleRecording()">
+          <span class="rec-dot" id="rec-dot"></span>
+          <span id="rec-label">開始錄音</span>
+        </button>
+        <span class="rec-timer" id="rec-timer"></span>
+      </div>
+      ${hasRecordings ? `
+        <div class="recording-list" id="recording-list">
+          ${recordings.map((r, i) => `
+            <div class="recording-item">
+              <span class="recording-item-icon">&#x1f3a4;</span>
+              <span class="recording-item-name">${escapeHtml(r.name || ('錄音 ' + (i + 1)))}</span>
+              <span class="recording-item-duration">${escapeHtml(r.duration || '')}</span>
+              <audio controls preload="none" src="${escapeHtml(r.url)}"></audio>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+async function toggleRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      clearInterval(recordingTimer);
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      await uploadRecording(blob);
+    };
+
+    mediaRecorder.start(1000); // 每秒收一次 chunk
+    recordingStartTime = Date.now();
+
+    // 更新 UI
+    const btn = document.getElementById('rec-btn');
+    const dot = document.getElementById('rec-dot');
+    const label = document.getElementById('rec-label');
+    const timer = document.getElementById('rec-timer');
+    if (btn) btn.classList.add('recording');
+    if (dot) dot.classList.add('recording');
+    if (label) label.textContent = '停止錄音';
+
+    recordingTimer = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+      const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const ss = String(elapsed % 60).padStart(2, '0');
+      if (timer) timer.textContent = `${mm}:${ss}`;
+    }, 1000);
+
+  } catch (e) {
+    console.error('錄音失敗', e);
+    alert('無法開啟麥克風，請確認瀏覽器權限');
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    const btn = document.getElementById('rec-btn');
+    const dot = document.getElementById('rec-dot');
+    const label = document.getElementById('rec-label');
+    if (btn) btn.classList.remove('recording');
+    if (dot) dot.classList.remove('recording');
+    if (label) label.textContent = '上傳中...';
+  }
+}
+
+async function uploadRecording(blob) {
+  const projId = currentProject;
+  const now = new Date();
+  const timestamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+  const fileName = `recordings/${projId}/${timestamp}_${currentUser.name}.webm`;
+
+  try {
+    const ref = storage.ref(fileName);
+    await ref.put(blob, { contentType: 'audio/webm' });
+    const url = await ref.getDownloadURL();
+
+    // 計算時長
+    const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+    const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const ss = String(elapsed % 60).padStart(2, '0');
+
+    // 存到 interviewData
+    if (!interviewData.recordings) interviewData.recordings = [];
+    interviewData.recordings.push({
+      url: url,
+      name: `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 錄音`,
+      duration: `${mm}:${ss}`,
+      author: currentUser.name,
+      created_at: now.toISOString()
+    });
+
+    await saveInterview();
+    renderInterview(); // 重新渲染顯示錄音列表
+  } catch (e) {
+    console.error('上傳錄音失敗', e);
+    alert('上傳錄音失敗：' + e.message);
+    const label = document.getElementById('rec-label');
+    if (label) label.textContent = '開始錄音';
+  }
 }
 
 // ===== 渲染白板 =====
