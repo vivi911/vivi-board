@@ -752,26 +752,19 @@ async function uploadRecording(blob) {
 }
 
 async function requestAISummary(docId, transcript) {
-
-  const prompt = `以下是一段會議錄音的逐字稿，請整理成重點摘要（條列式，繁體中文）。
-只保留有價值的重點，去除口語贅詞。如果提到具體需求、痛點、決策、時程、預算，請特別標出。
-
-逐字稿：
-${transcript}`;
-
   try {
-    const resp = await fetch('https://bridge.goaskvivi.com/task', {
+    const resp = await fetch('https://memory-api-153654770920.asia-east1.run.app/summarize', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': 'k1VDomAv5LHO1uQmW7U1f9ssyTYRKrCJ'
+        'X-API-Key': 'JIGqMtFlx_tnblirqiD0yIvAcEMdUczsmH0UmPruokE'
       },
-      body: JSON.stringify({ task: prompt })
+      body: JSON.stringify({ transcript: transcript })
     });
 
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
-    const summary = data.result || data.response || JSON.stringify(data);
+    const summary = data.summary || JSON.stringify(data);
 
     // 更新 recording entry
     const rec = (interviewData.recordings || []).find(r => r.docId === docId);
