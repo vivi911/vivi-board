@@ -193,6 +193,7 @@ async function showApp() {
   await loadNotes().catch(e => console.warn('載入筆記失敗', e));
   await loadDiscussionState().catch(e => console.warn('載入討論狀態失敗', e));
   await loadCardPositions().catch(e => console.warn('載入卡片位置失敗', e));
+  await loadStickies().catch(e => console.warn('載入便利貼失敗', e));
 
   // 載入專案（鎖定或預設第一個）
   switchProject(lockedProject && PROJECTS[lockedProject] ? lockedProject : Object.keys(PROJECTS)[0]);
@@ -201,6 +202,7 @@ async function showApp() {
   subscribeRealtime();
   subscribeDecisions();
   subscribeNotes();
+  subscribeStickies();
 }
 
 // ===== Firestore 資料同步 =====
@@ -298,6 +300,7 @@ function switchProject(projectId) {
   closePanel();
   renderBrief();
   renderBoard();
+  loadStickies().catch(e => console.warn('載入便利貼失敗', e));
 }
 
 // ===== 渲染白板 =====
@@ -708,7 +711,7 @@ document.addEventListener('wheel', (e) => {
   // 判斷是否點在「背景」上
   function isBackground(target) {
     // 點在卡片或控制元素上 → 不是背景
-    if (target.closest('.card, .card-mockup-embed, .arch-banner, .zoom-controls, .brief-panel, .comment-panel, button, input, textarea, select')) {
+    if (target.closest('.card, .card-mockup-embed, .arch-banner, .zoom-controls, .brief-panel, .comment-panel, .sticky-note, button, input, textarea, select')) {
       return false;
     }
     // 其他都算背景（board-container, board, cards-container, svg 等）
@@ -1430,6 +1433,204 @@ function toggleBrief() {
     board.style.left = saved;
   }
 })();
+
+// ===== 便利貼 Sticky Notes =====
+let stickies = [];
+
+async function loadStickies() {
+  const projId = currentProject || Object.keys(PROJECTS)[0];
+  try {
+    const snap = await db.collection('board_stickies')
+      .where('project_id', '==', projId)
+      .where('author', '==', currentUser.name)
+      .get();
+    stickies = [];
+    snap.forEach(doc => stickies.push({ id: doc.id, ...doc.data() }));
+  } catch (e) {
+    console.warn('載入便利貼失敗', e);
+    stickies = [];
+  }
+  renderStickies();
+}
+
+function subscribeStickies() {
+  const projId = currentProject || Object.keys(PROJECTS)[0];
+  db.collection('board_stickies')
+    .where('project_id', '==', projId)
+    .where('author', '==', currentUser.name)
+    .onSnapshot(snapshot => {
+      stickies = [];
+      snapshot.forEach(doc => stickies.push({ id: doc.id, ...doc.data() }));
+      renderStickies();
+    }, e => console.warn('便利貼訂閱失敗', e));
+}
+
+function renderStickies() {
+  const container = document.getElementById('stickies-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  stickies.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'sticky-note';
+    el.style.left = (s.x || 100) + 'px';
+    el.style.top = (s.y || 100) + 'px';
+    el.style.width = (s.width || 200) + 'px';
+    el.style.height = (s.height || 150) + 'px';
+    if (s.color) el.style.setProperty('--sticky-bg', s.color);
+    el.dataset.id = s.id;
+
+    el.innerHTML = `
+      <div class="sticky-header">
+        <div class="sticky-colors">
+          <span class="sticky-color-dot" style="background:#FFF9C4" onclick="changeStickyColor('${s.id}','#FFF9C4')"></span>
+          <span class="sticky-color-dot" style="background:#C8E6C9" onclick="changeStickyColor('${s.id}','#C8E6C9')"></span>
+          <span class="sticky-color-dot" style="background:#BBDEFB" onclick="changeStickyColor('${s.id}','#BBDEFB')"></span>
+          <span class="sticky-color-dot" style="background:#F8BBD0" onclick="changeStickyColor('${s.id}','#F8BBD0')"></span>
+          <span class="sticky-color-dot" style="background:#FFE0B2" onclick="changeStickyColor('${s.id}','#FFE0B2')"></span>
+        </div>
+        <span class="sticky-delete" onclick="deleteSticky('${s.id}')" title="刪除">✕</span>
+      </div>
+      <textarea class="sticky-text" placeholder="寫點什麼..."
+        onblur="saveStickyText('${s.id}', this.value)">${escapeHtml(s.text || '')}</textarea>
+      <div class="sticky-resizer" data-sticky-id="${s.id}"></div>
+    `;
+
+    makeStickyDraggable(el, s.id);
+    makeStickyResizable(el, el.querySelector('.sticky-resizer'), s.id);
+    container.appendChild(el);
+  });
+}
+
+async function addStickyNote() {
+  // Place near center of current viewport
+  const boardContainer = document.getElementById('board-container');
+  const cx = (boardContainer.scrollLeft + boardContainer.clientWidth / 2 - panX) / zoomLevel;
+  const cy = (boardContainer.scrollTop + boardContainer.clientHeight / 2 - panY) / zoomLevel;
+
+  const data = {
+    project_id: currentProject,
+    author: currentUser.name,
+    text: '',
+    x: Math.round(cx - 100),
+    y: Math.round(cy - 75),
+    width: 200,
+    height: 150,
+    color: '#FFF9C4',
+    created_at: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    const docRef = await db.collection('board_stickies').add(data);
+    stickies.push({ id: docRef.id, ...data });
+    renderStickies();
+  } catch (e) {
+    console.error('新增便利貼失敗', e);
+  }
+}
+
+async function saveStickyText(stickyId, text) {
+  const s = stickies.find(n => n.id === stickyId);
+  if (s) s.text = text;
+  try {
+    await db.collection('board_stickies').doc(stickyId).update({ text });
+  } catch (e) { console.warn('儲存便利貼文字失敗', e); }
+}
+
+async function changeStickyColor(stickyId, color) {
+  const s = stickies.find(n => n.id === stickyId);
+  if (s) s.color = color;
+  const el = document.querySelector(`.sticky-note[data-id="${stickyId}"]`);
+  if (el) el.style.setProperty('--sticky-bg', color);
+  try {
+    await db.collection('board_stickies').doc(stickyId).update({ color });
+  } catch (e) { console.warn('變更便利貼顏色失敗', e); }
+}
+
+async function deleteSticky(stickyId) {
+  stickies = stickies.filter(n => n.id !== stickyId);
+  renderStickies();
+  try {
+    await db.collection('board_stickies').doc(stickyId).delete();
+  } catch (e) { console.warn('刪除便利貼失敗', e); }
+}
+
+function makeStickyDraggable(el, stickyId) {
+  let startX, startY, origX, origY, dragging = false;
+
+  const header = el.querySelector('.sticky-header');
+  header.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.sticky-delete, .sticky-color-dot')) return;
+    startX = e.clientX;
+    startY = e.clientY;
+    origX = parseInt(el.style.left);
+    origY = parseInt(el.style.top);
+    dragging = false;
+    e.stopPropagation();
+
+    const onMove = (e2) => {
+      const dx = (e2.clientX - startX) / zoomLevel;
+      const dy = (e2.clientY - startY) / zoomLevel;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragging = true;
+      if (dragging) {
+        el.style.left = (origX + dx) + 'px';
+        el.style.top = (origY + dy) + 'px';
+        el.style.zIndex = 100;
+      }
+    };
+
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      el.style.zIndex = '';
+      if (dragging) {
+        const newX = parseInt(el.style.left);
+        const newY = parseInt(el.style.top);
+        const s = stickies.find(n => n.id === stickyId);
+        if (s) { s.x = newX; s.y = newY; }
+        db.collection('board_stickies').doc(stickyId).update({ x: newX, y: newY })
+          .catch(e => console.warn('儲存便利貼位置失敗', e));
+      }
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
+
+function makeStickyResizable(el, handle, stickyId) {
+  let startX, startY, startW, startH;
+
+  handle.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    startX = e.clientX;
+    startY = e.clientY;
+    startW = el.offsetWidth;
+    startH = el.offsetHeight;
+
+    const onMove = (e2) => {
+      const dw = (e2.clientX - startX) / zoomLevel;
+      const dh = (e2.clientY - startY) / zoomLevel;
+      el.style.width = Math.max(120, startW + dw) + 'px';
+      el.style.height = Math.max(80, startH + dh) + 'px';
+    };
+
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      const newW = parseInt(el.style.width);
+      const newH = parseInt(el.style.height);
+      const s = stickies.find(n => n.id === stickyId);
+      if (s) { s.width = newW; s.height = newH; }
+      db.collection('board_stickies').doc(stickyId).update({ width: newW, height: newH })
+        .catch(e => console.warn('儲存便利貼大小失敗', e));
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+}
 
 // ===== 初始化 =====
 (function init() {
