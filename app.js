@@ -520,12 +520,8 @@ function renderRecordingBar() {
           <span id="rec-label">開始錄音</span>
         </button>
         <span class="rec-timer" id="rec-timer"></span>
-        <span class="rec-hint" id="rec-hint">錄音同時即時轉文字</span>
       </div>
-      <div class="rec-transcript-box" id="rec-transcript-box" style="display:none;">
-        <div class="rec-transcript-label">即時轉文字</div>
-        <div class="rec-transcript-text" id="rec-transcript-text"></div>
-      </div>
+      <div class="rec-status" id="rec-status"></div>
       ${hasRecordings ? `
         <div class="recording-list" id="recording-list">
           ${recordings.map((r, i) => `
@@ -602,13 +598,9 @@ async function startRecording() {
     const dot = document.getElementById('rec-dot');
     const label = document.getElementById('rec-label');
     const timer = document.getElementById('rec-timer');
-    const hint = document.getElementById('rec-hint');
-    const transcriptBox = document.getElementById('rec-transcript-box');
     if (btn) btn.classList.add('recording');
     if (dot) dot.classList.add('recording');
     if (label) label.textContent = '停止錄音';
-    if (hint) hint.style.display = 'none';
-    if (transcriptBox) transcriptBox.style.display = 'block';
 
     recordingTimer = setInterval(() => {
       const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
@@ -641,21 +633,12 @@ function startSpeechRecognition() {
   let finalTranscript = '';
 
   speechRecognition.onresult = (event) => {
-    let interim = '';
     for (let i = event.resultIndex; i < event.results.length; i++) {
-      const text = event.results[i][0].transcript;
       if (event.results[i].isFinal) {
-        finalTranscript += text + '\n';
-      } else {
-        interim = text;
+        finalTranscript += event.results[i][0].transcript + '\n';
       }
     }
     liveTranscript = finalTranscript;
-    const el = document.getElementById('rec-transcript-text');
-    if (el) {
-      el.textContent = finalTranscript + (interim ? '...' + interim : '');
-      el.scrollTop = el.scrollHeight;
-    }
   };
 
   speechRecognition.onerror = (e) => {
@@ -740,15 +723,15 @@ async function uploadRecording(blob) {
       created_at: now.toISOString()
     };
 
-    // 有逐字稿就自動產摘要
-    if (transcript.length > 20) {
-      recEntry.summary = generateLocalSummary(transcript);
-    }
-
     interviewData.recordings.push(recEntry);
 
     await saveInterview();
     renderInterview();
+
+    // 有逐字稿就呼叫 AI 摘要
+    if (transcript.length > 20) {
+      requestAISummary(recEntry.docId, transcript);
+    }
   } catch (e) {
     console.error('上傳錄音失敗', e);
     alert('上傳錄音失敗：' + e.message);
@@ -757,15 +740,49 @@ async function uploadRecording(blob) {
   }
 }
 
-function generateLocalSummary(transcript) {
-  // 簡易摘要：取每段的前 30 字，最多 5 段
-  const lines = transcript.split('\n').filter(l => l.trim().length > 5);
-  if (lines.length === 0) return '';
-  const bullets = lines.slice(0, 8).map(l => {
-    const trimmed = l.trim();
-    return trimmed.length > 50 ? trimmed.substring(0, 50) + '...' : trimmed;
-  });
-  return bullets.join('\n');
+async function requestAISummary(docId, transcript) {
+  const statusEl = document.getElementById('rec-status');
+  if (statusEl) {
+    statusEl.textContent = 'AI 摘要分析中...';
+    statusEl.style.display = 'block';
+  }
+
+  const prompt = `以下是一段會議錄音的逐字稿，請整理成重點摘要（條列式，繁體中文）。
+只保留有價值的重點，去除口語贅詞。如果提到具體需求、痛點、決策、時程、預算，請特別標出。
+
+逐字稿：
+${transcript}`;
+
+  try {
+    const resp = await fetch('https://bridge.goaskvivi.com/task', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': 'k1VDomAv5LHO1uQmW7U1f9ssyTYRKrCJ'
+      },
+      body: JSON.stringify({ task: prompt })
+    });
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const summary = data.result || data.response || JSON.stringify(data);
+
+    // 更新 recording entry
+    const rec = (interviewData.recordings || []).find(r => r.docId === docId);
+    if (rec) {
+      rec.summary = summary;
+      await saveInterview();
+      renderInterview();
+    }
+
+    if (statusEl) statusEl.style.display = 'none';
+  } catch (e) {
+    console.warn('AI 摘要失敗', e);
+    if (statusEl) {
+      statusEl.textContent = 'AI 摘要失敗（摘要將在下次開啟時重試）';
+      setTimeout(() => { if (statusEl) statusEl.style.display = 'none'; }, 3000);
+    }
+  }
 }
 
 function showTranscript(docId) {
