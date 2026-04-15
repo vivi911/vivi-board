@@ -256,13 +256,22 @@ function subscribeRealtime() {
         // 避免重複
         if (card.comments.some(c => c.id === change.doc.id)) return;
 
-        card.comments.push({
-          id: change.doc.id,
-          author: row.author,
-          role: row.role,
-          text: row.text,
-          time: formatTime(row.created_at ? row.created_at.toDate() : new Date())
-        });
+        // 替換 temp 留言（addComment 樂觀更新產生的）
+        const tempIdx = card.comments.findIndex(c =>
+          c.id.startsWith('temp_') && c.author === row.author && c.text === row.text
+        );
+        if (tempIdx !== -1) {
+          card.comments[tempIdx].id = change.doc.id;
+          card.comments[tempIdx].time = formatTime(row.created_at ? row.created_at.toDate() : new Date());
+        } else {
+          card.comments.push({
+            id: change.doc.id,
+            author: row.author,
+            role: row.role,
+            text: row.text,
+            time: formatTime(row.created_at ? row.created_at.toDate() : new Date())
+          });
+        }
 
         if (currentProject === row.project_id && currentCardId === row.card_id) {
           renderComments(card);
