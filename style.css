@@ -2636,10 +2636,10 @@ body {
   right: 28px;
   width: 380px;
   max-height: 520px;
-  background: #1B2A4A;
-  border: 1px solid rgba(255,255,255,0.12);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.3);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.15);
   z-index: 500;
   display: flex;
   flex-direction: column;
@@ -2651,19 +2651,20 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 14px 18px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
 }
 
 .ai-panel-title {
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .ai-panel-close {
   background: none;
   border: none;
-  color: rgba(255,255,255,0.4);
+  color: var(--text-muted);
   font-size: 20px;
   cursor: pointer;
   padding: 0 4px;
@@ -2672,7 +2673,7 @@ body {
 }
 
 .ai-panel-close:hover {
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .ai-panel-body {
@@ -2686,7 +2687,7 @@ body {
 
 .ai-panel-empty {
   text-align: center;
-  color: rgba(255,255,255,0.35);
+  color: var(--text-muted);
   font-size: 13px;
   line-height: 1.8;
   padding: 40px 20px;
@@ -2697,8 +2698,8 @@ body {
   align-items: center;
   gap: 10px;
   padding: 12px 18px;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  background: rgba(0,0,0,0.15);
+  border-top: 1px solid var(--border);
+  background: var(--bg-elevated);
 }
 
 /* 錄音按鈕（面板內） */
@@ -2707,10 +2708,10 @@ body {
   align-items: center;
   gap: 8px;
   padding: 8px 18px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: var(--bg-canvas);
+  border: 1px solid var(--border);
   border-radius: 20px;
-  color: rgba(255,255,255,0.8);
+  color: var(--text-body);
   font-size: 13px;
   font-weight: 500;
   font-family: inherit;
@@ -2719,20 +2720,21 @@ body {
 }
 
 .ai-rec-btn:hover {
-  background: rgba(255,255,255,0.15);
+  background: var(--bg-elevated);
+  border-color: var(--gold-border);
 }
 
 .ai-rec-btn.recording {
-  background: rgba(220,50,50,0.2);
-  border-color: rgba(220,50,50,0.4);
-  color: #ff6b6b;
+  background: var(--red-bg);
+  border-color: var(--red-border);
+  color: var(--red);
 }
 
 .ai-rec-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.4);
+  background: var(--text-muted);
   transition: all 0.2s;
 }
 
@@ -2744,40 +2746,47 @@ body {
 .ai-rec-timer {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255,255,255,0.6);
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
-/* 對話氣泡 */
-.ai-msg {
-  padding: 10px 14px;
-  border-radius: 12px;
+/* 錄音卡片 */
+.ai-card {
+  background: var(--bg-canvas);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
   font-size: 13px;
-  line-height: 1.6;
 }
 
-.ai-msg-user {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.06);
+.ai-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
-.ai-msg-ai {
-  background: rgba(168,135,74,0.1);
-  border: 1px solid rgba(168,135,74,0.15);
+.ai-card-name {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
-.ai-msg-pending {
-  opacity: 0.6;
-  animation: rec-pulse 1.5s infinite;
-}
-
-.ai-msg-meta {
+.ai-card-duration {
   font-size: 11px;
-  color: rgba(255,255,255,0.5);
-  margin-bottom: 6px;
+  color: var(--text-muted);
 }
 
-.ai-msg-label {
+.ai-card-player {
+  margin-bottom: 8px;
+}
+
+.ai-card-summary {
+  border-top: 1px solid var(--border-light);
+  padding-top: 10px;
+}
+
+.ai-card-summary-label {
   font-size: 10px;
   font-weight: 700;
   color: var(--gold);
@@ -2785,24 +2794,25 @@ body {
   margin-bottom: 6px;
 }
 
-.ai-msg-content {
-  color: rgba(255,255,255,0.85);
+.ai-card-summary-text {
+  font-size: 12px;
+  color: var(--text-body);
+  line-height: 1.7;
   white-space: pre-wrap;
 }
 
-.ai-msg-transcript {
-  font-size: 11px;
-  color: rgba(255,255,255,0.4);
-  margin-top: 4px;
-  font-style: italic;
+.ai-card-pending {
+  font-size: 12px;
+  color: var(--text-muted);
+  animation: rec-pulse 1.5s infinite;
 }
 
 .ai-play-btn {
   padding: 4px 12px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  color: rgba(255,255,255,0.7);
+  color: var(--text-secondary);
   font-size: 11px;
   font-family: inherit;
   cursor: pointer;
@@ -2812,8 +2822,9 @@ body {
 }
 
 .ai-play-btn:hover {
-  background: rgba(255,255,255,0.2);
-  color: #fff;
+  background: var(--bg-elevated);
+  border-color: var(--gold-border);
+  color: var(--text-primary);
 }
 
 /* 訪談 meta 輸入 */

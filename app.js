@@ -527,21 +527,23 @@ function renderAIPanelBody() {
   }
 
   body.innerHTML = recordings.slice().reverse().map((r, i) => `
-    <div class="ai-msg ai-msg-user">
-      <div class="ai-msg-meta">${escapeHtml(r.name)} (${escapeHtml(r.duration || '')})</div>
-      <button class="ai-play-btn" data-doc="${r.docId}" onclick="loadAndPlayInPanel('${r.docId}', this)">&#9654; 播放</button>
-      ${r.transcript ? `<div class="ai-msg-transcript">${escapeHtml(r.transcript).substring(0, 100)}${r.transcript.length > 100 ? '...' : ''}</div>` : ''}
+    <div class="ai-card">
+      <div class="ai-card-header">
+        <span class="ai-card-name">${escapeHtml(r.name)}</span>
+        <span class="ai-card-duration">${escapeHtml(r.duration || '')}</span>
+      </div>
+      <div class="ai-card-player" id="ai-player-${r.docId}">
+        <button class="ai-play-btn" onclick="loadAndPlayInPanel('${r.docId}', this)">&#9654; 播放錄音</button>
+      </div>
+      ${r.summary ? `
+        <div class="ai-card-summary">
+          <div class="ai-card-summary-label">AI 摘要</div>
+          <div class="ai-card-summary-text">${escapeHtml(r.summary)}</div>
+        </div>
+      ` : (r.transcript && r.transcript.length > 20 ? `
+        <div class="ai-card-summary ai-card-pending">分析中...</div>
+      ` : '')}
     </div>
-    ${r.summary ? `
-      <div class="ai-msg ai-msg-ai">
-        <div class="ai-msg-label">AI 摘要</div>
-        <div class="ai-msg-content">${escapeHtml(r.summary)}</div>
-      </div>
-    ` : `
-      <div class="ai-msg ai-msg-ai ai-msg-pending">
-        <div class="ai-msg-content">${r.transcript && r.transcript.length > 20 ? 'AI 摘要分析中...' : '逐字稿太短，無法產摘要'}</div>
-      </div>
-    `}
   `).join('');
   body.scrollTop = body.scrollHeight;
 }
