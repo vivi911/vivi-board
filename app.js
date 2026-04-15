@@ -51,7 +51,10 @@ const PROJECT_ROLES = {
 function initLoginRoles() {
   const urlParams = new URLSearchParams(window.location.search);
   const proj = urlParams.get('project');
-  const roles = PROJECT_ROLES[proj] || PROJECT_ROLES["meili-emr"];
+  const roles = PROJECT_ROLES[proj] || [
+    { value: "品牌商", label: "品牌商" },
+    { value: "開發商", label: "開發商" }
+  ];
   const container = document.getElementById('role-options');
   container.innerHTML = roles.map((r, i) => `
     <label class="role-option">
