@@ -755,6 +755,216 @@ BA照片流程：
       discussions: [],
       infrastructure: []
     },
-    cards: []
+    cards: [
+      // === Row 0: 資料來源 ===
+      {
+        id: "data-source",
+        category: "資料來源",
+        title: "聘軒系統 / CSV 匯入",
+        status: "discuss",
+        col: 0, row: 0,
+        next: ["data-parse"],
+        content: `首選：串接聘軒 API 自動同步移工資料
+備案：人工從聘軒匯出 Excel/CSV，上傳至系統
+
+待確認：
+- 聘軒是否開放 API？費用？
+- 若手動匯入，匯出格式為何？欄位對應？
+- 匯入頻率：每日？每週？即時？`,
+        comments: []
+      },
+      {
+        id: "data-parse",
+        category: "資料處理",
+        title: "資料解析與匯入模組",
+        status: "gap",
+        col: 1, row: 0,
+        next: ["db-store"],
+        content: `功能：
+- API 模式：排程自動拉取聘軒資料，比對差異後更新
+- CSV 模式：上傳後自動解析欄位、驗證格式、錯誤提示
+- 重複偵測：依護照號碼判斷新增 or 更新
+- 匯入紀錄：每次匯入留 log（時間、筆數、錯誤）
+
+欄位對應：
+姓名、護照號碼、國籍、所屬仲介、聯絡方式
+入境日、出境日、體檢到期日、居留證到期日
+合約起訖日、保險到期日、狀態`,
+        comments: []
+      },
+      {
+        id: "db-store",
+        category: "資料儲存",
+        title: "Firestore 移工資料庫",
+        status: "gap",
+        col: 2, row: 0,
+        next: ["alert-engine", "dashboard-overview"],
+        content: `Collection: workers
+Document 結構：
+{
+  name, passport_no, nationality,
+  agent_name (所屬仲介),
+  entry_date, exit_date,
+  health_check_expiry,
+  residence_permit_expiry,
+  contract_start, contract_end,
+  insurance_expiry,
+  status: "active" | "departed" | "expired",
+  created_at, updated_at
+}
+
+資料規模：3,000-4,000 活躍 + 10,000+ 歷史
+部署：GCP asia-east1（台灣機房）
+加密：HTTPS + Firestore 靜態加密`,
+        comments: []
+      },
+
+      // === Row 1: Alert 引擎 ===
+      {
+        id: "alert-engine",
+        category: "核心引擎",
+        title: "Alert 警示引擎",
+        status: "gap",
+        col: 1, row: 1,
+        next: ["alert-rules"],
+        content: `每日自動掃描全部活躍移工，計算各項到期剩餘天數
+
+5 大警示類型：
+1. 出入境警示 — 出境前提醒準備文件
+2. 體檢到期警示 — 逾期受罰
+3. 居留證展延警示 — 到期前辦理
+4. 合約到期警示 — 續約或離境決策
+5. 保險到期警示 — 續保提醒
+
+燈號邏輯：
+🔴 逾期 或 ≤ 7 天
+🟡 8-30 天
+🟢 > 30 天（安全）`,
+        comments: []
+      },
+      {
+        id: "alert-rules",
+        category: "核心引擎",
+        title: "自定義通知規則",
+        status: "discuss",
+        col: 2, row: 1,
+        next: ["dashboard-overview"],
+        content: `管理員可設定各類警示的提前通知天數
+
+預設值（待客戶確認）：
+- 出入境：30 天前
+- 體檢：30 天前
+- 居留證展延：60 天前（需提前送件）
+- 合約到期：90 天前（需決策時間）
+- 保險：30 天前
+
+待確認：
+- 各項目實際需提前幾天？
+- 是否需要多層提醒（如 60天 + 30天 + 7天）？`,
+        comments: []
+      },
+
+      // === Row 2: 儀表板 UI ===
+      {
+        id: "dashboard-overview",
+        category: "儀表板",
+        title: "總覽頁",
+        status: "gap",
+        col: 0, row: 2,
+        next: ["dashboard-category", "dashboard-list"],
+        content: `一眼掌握全局：
+
+顯示內容：
+- 各類 Alert 數量統計（紅/黃/綠）
+- 今日待處理總筆數
+- 逾期未處理筆數（紅色醒目）
+- 本週即將到期筆數
+
+互動：
+- 點擊各類別可跳轉至分類檢視
+- 點擊數字可直接看清單`,
+        comments: []
+      },
+      {
+        id: "dashboard-category",
+        category: "儀表板",
+        title: "分類檢視",
+        status: "gap",
+        col: 1, row: 2,
+        next: ["dashboard-list"],
+        content: `依 5 大 Alert 類型分頁切換：
+
+Tab：出入境 | 體檢 | 居留證 | 合約 | 保險
+
+每個分類頁顯示：
+- 該類別紅/黃/綠統計
+- 待處理清單（依剩餘天數排序）
+- 可依仲介篩選`,
+        comments: []
+      },
+      {
+        id: "dashboard-list",
+        category: "儀表板",
+        title: "清單列表 & 篩選",
+        status: "gap",
+        col: 2, row: 2,
+        next: [],
+        content: `每位移工一行，欄位：
+燈號 | 姓名 | 護照號 | 國籍 | 所屬仲介 | 到期項目 | 到期日 | 剩餘天數
+
+功能：
+- 排序：依剩餘天數、仲介、國籍
+- 篩選：依仲介、國籍、狀態、燈號
+- 搜尋：姓名、護照號碼快搜
+- 響應式：桌面表格 / 手機卡片式`,
+        comments: []
+      },
+
+      // === Row 3: 系統 ===
+      {
+        id: "auth",
+        category: "系統",
+        title: "登入與權限",
+        status: "gap",
+        col: 0, row: 3,
+        next: ["dashboard-overview"],
+        content: `角色權限：
+- 管理員：看全部移工、設定通知規則、管理帳號
+- 仲介：只看自己負責的移工
+
+登入方式：
+帳號密碼（由管理員建立）
+
+待確認：
+- 共幾位使用者？
+- 仲介分幾組？各負責幾位移工？
+- 是否需要「唯讀」角色（如主管只看報表）？`,
+        comments: []
+      },
+      {
+        id: "infra",
+        category: "系統",
+        title: "GCP 部署 & 資安",
+        status: "gap",
+        col: 1, row: 3,
+        next: [],
+        content: `架構：
+- 前端：靜態網頁（Cloud Storage / Firebase Hosting）
+- 後端：Cloud Run（API + Alert 引擎）
+- 資料庫：Firestore
+- 機房：asia-east1（台灣）
+
+資安：
+- HTTPS 全程加密
+- Firestore 靜態加密
+- 帳號權限控管
+- NDA 保密協議（雙方簽署）
+
+維運：
+- 預估月費 $3,000（Cloud Run + Firestore）
+- 含系統監控 & 小幅調整`,
+        comments: []
+      }
+    ]
   }
 };
