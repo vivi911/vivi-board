@@ -64,6 +64,92 @@ const INTERVIEW_TEMPLATE = {
   ]
 };
 
+// ===== 研究調研模板 =====
+const RESEARCH_TEMPLATE = {
+  default: [
+    {
+      id: 'existing_system',
+      title: '現有系統調研',
+      placeholder: '目前用什麼系統？功能有哪些？哪些不足？\nAPI 是否開放？費用？限制？',
+      hint: '重點：釐清能串接什麼、不能串接什麼'
+    },
+    {
+      id: 'competitors',
+      title: '競品 / 替代方案',
+      placeholder: '市場上有哪些類似產品？\n各自的優缺點？定價？\n為什麼不直接用現成的？',
+      hint: '了解客戶為什麼需要客製化'
+    },
+    {
+      id: 'regulations',
+      title: '法規 / 合規需求',
+      placeholder: '涉及哪些法規？個資法？行業規定？\n資料保存年限？加密要求？',
+      hint: null
+    },
+    {
+      id: 'data_inventory',
+      title: '資料盤點',
+      placeholder: '客戶目前有哪些資料？格式？\n欄位清單、資料量、更新頻率',
+      hint: '請客戶提供範例檔案'
+    },
+    {
+      id: 'tech_options',
+      title: '技術方案評估',
+      placeholder: '架構選型、技術棧評估、成本估算\n為什麼選 A 不選 B？',
+      hint: null
+    },
+    {
+      id: 'open_questions',
+      title: '待釐清問題',
+      placeholder: '還沒有答案的問題、需要客戶回覆的事項',
+      hint: '每次會議後更新，追蹤到有答案為止'
+    }
+  ],
+  "asia-pacific": [
+    {
+      id: 'pinxuan_api',
+      title: '聘軒系統 API 調研',
+      placeholder: '聘軒是否開放 API？費用？限制？\n若不開放，匯出格式為何？',
+      hint: '這是決定「自動同步」或「手動匯入」的關鍵',
+      prefill: '待確認事項：\n1. 聘軒是否願意開放 API 供外部串接？\n2. API 開發費用？月租？\n3. 若不開放 API，匯出的 Excel/CSV 欄位有哪些？\n4. 匯出頻率限制？'
+    },
+    {
+      id: 'alert_rules',
+      title: '通知規則盤點',
+      placeholder: '各項作業需提前幾天通知？',
+      hint: '請客戶端列出具體天數',
+      prefill: '請客戶確認各項提前通知天數：\n\n| 項目 | 建議天數 | 客戶確認 |\n|------|---------|--------|\n| 出入境 | 30 天前 | |\n| 體檢到期 | 30 天前 | |\n| 居留證展延 | 60 天前 | |\n| 合約到期 | 90 天前 | |\n| 保險到期 | 30 天前 | |\n\n是否需要多層提醒（如 60天 + 30天 + 7天）？'
+    },
+    {
+      id: 'data_inventory',
+      title: '資料欄位盤點',
+      placeholder: '移工基本資料有哪些欄位？附件？',
+      hint: '請客戶提供一份範例 Excel',
+      prefill: '預計欄位：\n- 姓名、護照號碼、國籍\n- 所屬仲介、聯絡方式\n- 入境日、出境日\n- 體檢到期日\n- 居留證到期日\n- 合約起訖日\n- 保險到期日\n- 狀態（在職/離境/合約結束）\n\n待確認：\n- 還有哪些欄位？\n- 附件（護照掃描、體檢報告等）需要管理嗎？\n- 資料量：活躍約 3,000-4,000 人，歷史 10,000+ 筆'
+    },
+    {
+      id: 'regulations',
+      title: '法規與資安',
+      placeholder: '個資法、勞動部規定、罰則',
+      hint: null,
+      prefill: '涉及法規：\n- 個人資料保護法（移工個資）\n- 勞動部就業服務法相關規定\n- 居留證/體檢逾期罰則\n\n資安措施：\n- GCP 台灣機房（asia-east1）\n- HTTPS + Firestore 靜態加密\n- 帳號權限控管\n- NDA 保密協議（雙方簽署）'
+    },
+    {
+      id: 'competitors',
+      title: '競品與現有方案',
+      placeholder: '聘軒以外還有什麼選擇？為什麼不用？',
+      hint: null,
+      prefill: '現有方案：\n- 聘軒系統：行政軟體，無儀表板功能，介面不友善\n- Salesforce / Tableau：功能過重，學習門檻高，成本高\n- Excel 人工管理：目前做法，容易出錯\n\n決策：客製化簡易儀表板，降低學習門檻'
+    },
+    {
+      id: 'open_questions',
+      title: '待釐清問題',
+      placeholder: '還沒有答案的問題',
+      hint: '每次會議後更新',
+      prefill: '1. 聘軒 API 開放性？（待客戶詢問）\n2. 各項通知提前天數？（待客戶列出）\n3. 使用者共幾位？仲介分幾組？\n4. 是否需要「唯讀」角色（主管看報表）？\n5. 移工基本資料範例檔？（待客戶提供）\n6. 預算與時程期望？'
+    }
+  ]
+};
+
 // ===== 專案資料 =====
 
 const PROJECTS = {

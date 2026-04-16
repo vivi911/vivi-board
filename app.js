@@ -380,6 +380,8 @@ function switchTab(tabId) {
   // 載入對應 Tab 的資料
   if (tabId === 'interview') {
     loadInterview().then(renderInterview);
+  } else if (tabId === 'research') {
+    loadResearch().then(renderResearch);
   }
 }
 
@@ -497,6 +499,114 @@ async function saveInterview() {
 async function saveInterviewNow() {
   if (interviewSaveTimeout) clearTimeout(interviewSaveTimeout);
   await saveInterview();
+}
+
+// ===== 研究調研系統 =====
+let researchData = {};
+let researchSaveTimeout = null;
+
+async function loadResearch() {
+  const projId = currentProject;
+  try {
+    const doc = await db.collection('board_research').doc(projId).get();
+    if (doc.exists) {
+      researchData = doc.data();
+    } else {
+      // 用模板初始化，有專案專屬模板就用專屬的
+      const template = RESEARCH_TEMPLATE[projId] || RESEARCH_TEMPLATE.default;
+      researchData = {
+        project_id: projId,
+        sections: {}
+      };
+      // 填入 prefill 內容
+      template.forEach(sec => {
+        if (sec.prefill) {
+          researchData.sections[sec.id] = sec.prefill;
+        }
+      });
+    }
+  } catch (e) {
+    console.warn('載入研究資料失敗', e);
+    researchData = { project_id: projId, sections: {} };
+  }
+}
+
+function renderResearch() {
+  const header = document.getElementById('research-header');
+  const body = document.getElementById('research-body');
+  const projName = PROJECTS[currentProject] ? PROJECTS[currentProject].name : currentProject;
+  const template = RESEARCH_TEMPLATE[currentProject] || RESEARCH_TEMPLATE.default;
+
+  header.innerHTML = `
+    <div class="research-header-inner">
+      <div class="research-title">${escapeHtml(projName)} — 研究調研</div>
+      <div class="research-subtitle">決策前的調研資料：系統調研、法規、資料盤點、待釐清問題</div>
+    </div>
+  `;
+
+  body.innerHTML = template.map((sec, i) => {
+    const val = (researchData.sections && researchData.sections[sec.id]) || '';
+    return `
+    <div class="research-section">
+      <div class="research-section-header">
+        <div class="research-section-number">${i + 1}</div>
+        <div class="research-section-title">${escapeHtml(sec.title)}</div>
+      </div>
+      ${sec.hint ? `<div class="research-section-hint">${escapeHtml(sec.hint)}</div>` : ''}
+      <textarea placeholder="${escapeHtml(sec.placeholder)}"
+                oninput="updateResearchSection('${sec.id}', this.value)">${escapeHtml(val)}</textarea>
+    </div>`;
+  }).join('') + `
+    <div class="research-save-bar">
+      <div class="research-save-status" id="research-save-status"></div>
+      <button class="research-save-btn" onclick="saveResearchNow()">儲存</button>
+    </div>
+  `;
+}
+
+function updateResearchSection(sectionId, value) {
+  if (!researchData.sections) researchData.sections = {};
+  researchData.sections[sectionId] = value;
+  scheduleResearchSave();
+}
+
+function scheduleResearchSave() {
+  const statusEl = document.getElementById('research-save-status');
+  if (statusEl) {
+    statusEl.textContent = '未儲存';
+    statusEl.className = 'research-save-status';
+  }
+  if (researchSaveTimeout) clearTimeout(researchSaveTimeout);
+  researchSaveTimeout = setTimeout(() => saveResearch(), 3000);
+}
+
+async function saveResearch() {
+  const projId = currentProject;
+  try {
+    await db.collection('board_research').doc(projId).set({
+      ...researchData,
+      project_id: projId,
+      updated_by: currentUser.name,
+      updated_at: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    const statusEl = document.getElementById('research-save-status');
+    if (statusEl) {
+      statusEl.textContent = '已儲存';
+      statusEl.className = 'research-save-status saved';
+    }
+  } catch (e) {
+    console.warn('儲存研究資料失敗', e);
+    const statusEl = document.getElementById('research-save-status');
+    if (statusEl) {
+      statusEl.textContent = '儲存失敗';
+      statusEl.className = 'research-save-status';
+    }
+  }
+}
+
+async function saveResearchNow() {
+  if (researchSaveTimeout) clearTimeout(researchSaveTimeout);
+  await saveResearch();
 }
 
 // ===== 錄音系統 =====
