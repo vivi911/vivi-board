@@ -1199,7 +1199,7 @@ function renderBoard() {
       makeResizable(el, resizer);
     } else {
       const commentCount = card.comments ? card.comments.length : 0;
-      const specCodesHtml = card.specCodes ? `<div class="card-spec-codes">${card.specCodes.join(' · ')}</div>` : '';
+      const specCodesHtml = card.specCodes ? `<div class="card-spec-codes" title="${getSpecTooltip(card.specCodes)}">${card.specCodes.join(' · ')}</div>` : '';
       el.innerHTML = `
         <div class="card-category">${card.category}</div>
         <div class="card-title">${card.title}</div>
@@ -1303,6 +1303,37 @@ function statusLabel(status) {
 }
 
 // ===== 面板 =====
+// 從 SPEC_FIELDS 查找編碼對應的功能名稱
+function getSpecLookup() {
+  const specData = SPEC_FIELDS[currentProject];
+  if (!specData || specData.type !== 'comparison') return {};
+  const lookup = {};
+  specData.categories.forEach(cat => {
+    cat.fields.forEach(f => {
+      lookup[f.code] = f.name;
+    });
+  });
+  return lookup;
+}
+
+function getSpecTooltip(codes) {
+  const lookup = getSpecLookup();
+  return codes.map(c => `${c}: ${lookup[c] || '—'}`).join('\n');
+}
+
+function renderSpecCodesInPanel(codes) {
+  const lookup = getSpecLookup();
+  if (!codes || codes.length === 0) return '';
+  const rows = codes.map(c => {
+    const name = lookup[c] || '—';
+    return `<tr><td style="padding:4px 8px;"><code style="color:#8D6E63; font-weight:600;">${escapeHtml(c)}</code></td><td style="padding:4px 8px; font-size:13px;">${escapeHtml(name)}</td></tr>`;
+  }).join('');
+  return `<div class="panel-spec-section">
+    <div class="panel-spec-title">對應規格</div>
+    <table style="width:100%; border-collapse:collapse;">${rows}</table>
+  </div>`;
+}
+
 function openPanel(cardId) {
   const project = PROJECTS[currentProject];
   const card = project.cards.find(c => c.id === cardId);
@@ -1321,7 +1352,8 @@ function openPanel(cardId) {
   content = content.replace(/\u274C[^\n]*/g, '<span class="highlight-gap">$&</span>');
   content = content.replace(/\u2705[^\n]*/g, '<span class="highlight-confirmed">$&</span>');
   content = content.replace(/\u2753[^\n]*/g, '<span class="highlight-discuss">$&</span>');
-  document.getElementById('panel-content').innerHTML = content;
+  const specHtml = renderSpecCodesInPanel(card.specCodes);
+  document.getElementById('panel-content').innerHTML = content + specHtml;
 
   renderComments(card);
   document.getElementById('panel').classList.remove('panel-hidden');

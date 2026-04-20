@@ -3286,6 +3286,27 @@ body {
   letter-spacing: 0.3px;
 }
 
+/* === 側欄規格細目 === */
+.panel-spec-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+.panel-spec-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8D6E63;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.panel-spec-section table tr:nth-child(even) {
+  background: #FAFAFA;
+}
+.panel-spec-section table tr:hover {
+  background: #FFF3E0;
+}
+
 /* === 比對表樣式 === */
 .spec-compare-table .spec-th-code { width: 80px; }
 .spec-compare-table .spec-th-vendor { width: 140px; text-align: center; }
