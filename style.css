@@ -3277,6 +3277,15 @@ body {
   color: #E57373;
 }
 
+/* === 卡片規格編碼 === */
+.card-spec-codes {
+  font-size: 11px;
+  color: #8D6E63;
+  margin-top: 4px;
+  line-height: 1.4;
+  letter-spacing: 0.3px;
+}
+
 /* === 比對表樣式 === */
 .spec-compare-table .spec-th-code { width: 80px; }
 .spec-compare-table .spec-th-vendor { width: 140px; text-align: center; }

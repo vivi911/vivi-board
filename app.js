@@ -1199,9 +1199,11 @@ function renderBoard() {
       makeResizable(el, resizer);
     } else {
       const commentCount = card.comments ? card.comments.length : 0;
+      const specCodesHtml = card.specCodes ? `<div class="card-spec-codes">${card.specCodes.join(' · ')}</div>` : '';
       el.innerHTML = `
         <div class="card-category">${card.category}</div>
         <div class="card-title">${card.title}</div>
+        ${specCodesHtml}
         <div class="card-footer">
           <span class="card-status status-${card.status}">${statusLabel(card.status)}</span>
           <span class="card-comments">\u{1F4AC} ${commentCount}</span>
