@@ -73,9 +73,17 @@ let boardUsers = []; // Firestore 已註冊使用者
 
 async function loadBoardUsers() {
   try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const project = urlParams.get('project') || '';
     const snap = await db.collection('board_users').orderBy('name').get();
     boardUsers = [];
-    snap.forEach(doc => boardUsers.push({ id: doc.id, ...doc.data() }));
+    snap.forEach(doc => {
+      const data = { id: doc.id, ...doc.data() };
+      // 只顯示屬於當前專案的使用者（無 project 欄位的舊資料不顯示）
+      if (data.project === project) {
+        boardUsers.push(data);
+      }
+    });
   } catch (e) {
     console.warn('載入使用者清單失敗', e);
     boardUsers = [];
@@ -133,9 +141,12 @@ async function doLogin() {
     }
     // 存到 Firestore（失敗不擋登入）
     try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const project = urlParams.get('project') || '';
       await db.collection('board_users').add({
         name: name,
         role: role,
+        project: project,
         created_at: firebase.firestore.FieldValue.serverTimestamp()
       });
     } catch (e) {
