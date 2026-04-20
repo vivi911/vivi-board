@@ -846,107 +846,103 @@ BA照片流程：
       {
         id: "data-source",
         category: "資料來源",
-        title: "聘軒系統 / CSV 匯入",
+        title: "聘軒系統 / Excel 匯入",
         status: "discuss",
         col: 0, row: 0,
         next: ["data-parse"],
-        content: `首選：串接聘軒 API 自動同步移工資料
-備案：人工從聘軒匯出 Excel/CSV，上傳至系統
+        content: `資料從哪裡來？
+
+方案 A（最佳）：直接串接聘軒，資料自動同步，不用人工操作
+方案 B（備案）：從聘軒匯出 Excel，上傳到新系統
 
 待確認：
-- 聘軒是否開放 API？費用？
-- 若手動匯入，匯出格式為何？欄位對應？
-- 匯入頻率：每日？每週？即時？`,
+- 聘軒是否願意開放串接？費用多少？
+- 如果用 Excel，目前匯出的格式長怎樣？
+- 多久需要更新一次資料？`,
         comments: []
       },
       {
         id: "data-parse",
         category: "資料處理",
-        title: "資料解析與匯入模組",
+        title: "資料匯入與比對",
         status: "gap",
         col: 1, row: 0,
         next: ["db-store"],
-        content: `功能：
-- API 模式：排程自動拉取聘軒資料，比對差異後更新
-- CSV 模式：上傳後自動解析欄位、驗證格式、錯誤提示
-- 重複偵測：依護照號碼判斷新增 or 更新
-- 匯入紀錄：每次匯入留 log（時間、筆數、錯誤）
+        content: `上傳 Excel 後系統自動處理：
 
-欄位對應：
+1. 自動讀取欄位，不用手動對應
+2. 同一個護照號碼 → 更新，不會重複建檔
+3. 格式有錯會提示哪幾筆有問題
+4. 每次匯入都有紀錄，可以回查
+
+需要管理的欄位：
 姓名、護照號碼、國籍、所屬仲介、聯絡方式
 入境日、出境日、體檢到期日、居留證到期日
-合約起訖日、保險到期日、狀態`,
+合約起訖日、保險到期日、目前狀態`,
         comments: []
       },
       {
         id: "db-store",
         category: "資料儲存",
-        title: "Firestore 移工資料庫",
+        title: "移工資料庫",
         status: "gap",
         col: 2, row: 0,
-        next: ["alert-engine", "dashboard-overview"],
-        content: `Collection: workers
-Document 結構：
-{
-  name, passport_no, nationality,
-  agent_name (所屬仲介),
-  entry_date, exit_date,
-  health_check_expiry,
-  residence_permit_expiry,
-  contract_start, contract_end,
-  insurance_expiry,
-  status: "active" | "departed" | "expired",
-  created_at, updated_at
-}
+        next: [],
+        content: `所有移工資料集中管理在雲端資料庫
 
-資料規模：3,000-4,000 活躍 + 10,000+ 歷史
-部署：GCP asia-east1（台灣機房）
-加密：HTTPS + Firestore 靜態加密`,
+容量：
+- 約 3,000～4,000 位活躍移工
+- 保留過往 10,000+ 筆歷史紀錄
+
+安全：
+- 存放在 Google 台灣機房
+- 傳輸全程加密
+- 只有登入的人才能看到資料`,
         comments: []
       },
 
       // === Row 1: Alert 引擎 ===
       {
         id: "alert-engine",
-        category: "核心引擎",
-        title: "Alert 警示引擎",
+        category: "核心功能",
+        title: "自動警示提醒",
         status: "gap",
         col: 1, row: 1,
         next: ["alert-rules"],
-        content: `每日自動掃描全部活躍移工，計算各項到期剩餘天數
+        content: `系統每天自動檢查所有移工，哪些快到期了
 
-5 大警示類型：
-1. 出入境警示 — 出境前提醒準備文件
-2. 體檢到期警示 — 逾期受罰
-3. 居留證展延警示 — 到期前辦理
-4. 合約到期警示 — 續約或離境決策
-5. 保險到期警示 — 續保提醒
+5 大提醒項目：
+1. 出入境 — 出境前提醒準備文件
+2. 體檢 — 逾期會被罰款
+3. 居留證 — 到期前要辦展延
+4. 合約 — 要決定續約還是離境
+5. 保險 — 到期前要續保
 
-燈號邏輯：
-🔴 逾期 或 ≤ 7 天
-🟡 8-30 天
-🟢 > 30 天（安全）`,
+一看就懂的燈號：
+🔴 紅燈：已逾期 或 7 天內到期（緊急）
+🟡 黃燈：30 天內到期（注意）
+🟢 綠燈：還早，安全`,
         comments: []
       },
       {
         id: "alert-rules",
-        category: "核心引擎",
-        title: "自定義通知規則",
+        category: "核心功能",
+        title: "提前天數設定",
         status: "discuss",
         col: 2, row: 1,
-        next: ["dashboard-overview"],
-        content: `管理員可設定各類警示的提前通知天數
+        next: [],
+        content: `每個項目可以自己設定「提前幾天」開始提醒
 
-預設值（待客戶確認）：
+建議值（請確認或調整）：
 - 出入境：30 天前
 - 體檢：30 天前
-- 居留證展延：60 天前（需提前送件）
-- 合約到期：90 天前（需決策時間）
+- 居留證展延：60 天前（送件需要時間）
+- 合約到期：90 天前（要提早決定）
 - 保險：30 天前
 
 待確認：
-- 各項目實際需提前幾天？
-- 是否需要多層提醒（如 60天 + 30天 + 7天）？`,
+- 以上天數 OK 嗎？
+- 需不需要分層提醒？（例如 60天提醒一次、30天再提醒、7天緊急通知）`,
         comments: []
       },
 
@@ -957,18 +953,15 @@ Document 結構：
         title: "總覽頁",
         status: "gap",
         col: 0, row: 2,
-        next: ["dashboard-category", "dashboard-list"],
-        content: `一眼掌握全局：
+        next: ["dashboard-category"],
+        content: `打開就知道今天要處理什麼
 
-顯示內容：
-- 各類 Alert 數量統計（紅/黃/綠）
-- 今日待處理總筆數
-- 逾期未處理筆數（紅色醒目）
-- 本週即將到期筆數
+畫面上會看到：
+- 紅燈幾個、黃燈幾個、綠燈幾個
+- 今天有幾筆需要處理
+- 已經逾期的有幾筆（紅色醒目提示）
 
-互動：
-- 點擊各類別可跳轉至分類檢視
-- 點擊數字可直接看清單`,
+點數字就能直接看名單`,
         comments: []
       },
       {
@@ -978,31 +971,31 @@ Document 結構：
         status: "gap",
         col: 1, row: 2,
         next: ["dashboard-list"],
-        content: `依 5 大 Alert 類型分頁切換：
+        content: `用 Tab 切換不同項目：
 
-Tab：出入境 | 體檢 | 居留證 | 合約 | 保險
+出入境 ｜ 體檢 ｜ 居留證 ｜ 合約 ｜ 保險
 
-每個分類頁顯示：
-- 該類別紅/黃/綠統計
-- 待處理清單（依剩餘天數排序）
-- 可依仲介篩選`,
+每個分類會顯示：
+- 該項目紅/黃/綠各幾筆
+- 按「剩幾天到期」排序
+- 可以只看某位仲介負責的`,
         comments: []
       },
       {
         id: "dashboard-list",
         category: "儀表板",
-        title: "清單列表 & 篩選",
+        title: "名單與搜尋",
         status: "gap",
         col: 2, row: 2,
         next: [],
-        content: `每位移工一行，欄位：
-燈號 | 姓名 | 護照號 | 國籍 | 所屬仲介 | 到期項目 | 到期日 | 剩餘天數
+        content: `每位移工一行：
+燈號 ｜ 姓名 ｜ 護照號 ｜ 仲介 ｜ 到期項目 ｜ 剩餘天數
 
-功能：
-- 排序：依剩餘天數、仲介、國籍
-- 篩選：依仲介、國籍、狀態、燈號
-- 搜尋：姓名、護照號碼快搜
-- 響應式：桌面表格 / 手機卡片式`,
+可以做的事：
+- 按剩餘天數、仲介、國籍排序
+- 篩選：只看紅燈、只看某仲介
+- 搜尋：打姓名或護照號碼就能找到
+- 電腦看是表格，手機看是卡片`,
         comments: []
       },
 
@@ -1013,43 +1006,354 @@ Tab：出入境 | 體檢 | 居留證 | 合約 | 保險
         title: "登入與權限",
         status: "gap",
         col: 0, row: 3,
-        next: ["dashboard-overview"],
-        content: `角色權限：
-- 管理員：看全部移工、設定通知規則、管理帳號
+        next: ["infra"],
+        content: `誰可以看什麼：
+- 管理員：看全部移工、設定規則、管理帳號
 - 仲介：只看自己負責的移工
 
-登入方式：
-帳號密碼（由管理員建立）
+帳號由管理員建立，用帳號密碼登入
 
 待確認：
-- 共幾位使用者？
+- 總共幾位使用者要用？
 - 仲介分幾組？各負責幾位移工？
-- 是否需要「唯讀」角色（如主管只看報表）？`,
+- 需不需要「只能看、不能改」的角色？`,
         comments: []
       },
       {
         id: "infra",
         category: "系統",
-        title: "GCP 部署 & 資安",
+        title: "資料安全 & 主機",
         status: "gap",
         col: 1, row: 3,
         next: [],
-        content: `架構：
-- 前端：靜態網頁（Cloud Storage / Firebase Hosting）
-- 後端：Cloud Run（API + Alert 引擎）
-- 資料庫：Firestore
-- 機房：asia-east1（台灣）
-
-資安：
-- HTTPS 全程加密
-- Firestore 靜態加密
-- 帳號權限控管
-- NDA 保密協議（雙方簽署）
+        content: `資料安全措施：
+- 存放在 Google 台灣機房（不出國）
+- 傳輸全程加密，外人無法攔截
+- 帳號密碼控管，只有授權的人能看
+- 雙方簽署保密協議（NDA）
 
 維運：
-- 預估月費 $3,000（Cloud Run + Firestore）
-- 含系統監控 & 小幅調整`,
+- 主機月費約 $3,000
+- 含系統監控與日常維護`,
         comments: []
+      }
+    ]
+  }
+};
+
+// ===== 規格欄位資料 =====
+const SPEC_FIELDS = {
+  "asia-pacific": {
+    source: "聘軒系統報表 xml816 / MGT08",
+    file: "報表欄位.xlsx",
+    updated: "2026-04-20",
+    categories: [
+      {
+        id: "worker_basic",
+        name: "移工基本資料",
+        icon: "👤",
+        fields: [
+          { name: "序號", code: "CC", use: "Yes" },
+          { name: "員工編號", code: "LA66", use: "Yes" },
+          { name: "英文姓名", code: "LA02", use: "No" },
+          { name: "英文姓", code: "LA123", use: "Yes" },
+          { name: "OP_NO", code: "LA202", use: "Yes" },
+          { name: "英文名", code: "LA124", use: "Yes" },
+          { name: "姓名(中)", code: "LA33", use: "No" },
+          { name: "出生日期", code: "LA03", use: "Yes" },
+          { name: "護照號碼", code: "LA06", use: "Yes" },
+          { name: "舊護照號碼", code: "LA209", use: "Yes" },
+          { name: "護照期限", code: "LA11", use: "Yes" },
+          { name: "護照期限(年)", code: "LA11Y", use: "Yes" },
+          { name: "護照期限(月)", code: "LA11M", use: "Yes" },
+          { name: "護照期限(日)", code: "LA11D", use: "Yes" },
+          { name: "國籍", code: "LA04", use: "No" },
+          { name: "性別", code: "LA05", use: "No" },
+          { name: "移工年齡", code: "LA03G_YY", use: "Yes" },
+          { name: "體重", code: "LA105", use: "Yes" },
+          { name: "身高", code: "LA104", use: "Yes" },
+          { name: "血型", code: "LA201", use: "Yes" },
+          { name: "外勞序號", code: "LA00", use: "No" },
+          { name: "宗教", code: "LA199", use: "Yes" },
+          { name: "教育程度", code: "LA200", use: "Yes" },
+          { name: "外勞出生地點", code: "LA111", use: "Yes" },
+          { name: "外勞電話(台)", code: "LA87", use: "Yes" },
+          { name: "外勞電話(外)", code: "LA40", use: "Yes" },
+          { name: "外勞Email", code: "LA191", use: "Yes" },
+          { name: "國外地址", code: "LA39", use: "Yes" },
+          { name: "國外連絡人", code: "LA41", use: "Yes" },
+          { name: "外勞編號", code: "LA125", use: "Yes" },
+          { name: "外勞狀態", code: "MMO", use: "Yes" },
+          { name: "母國身分證", code: "LA154", use: "Yes" },
+          { name: "外勞稅籍編號", code: "LA187", use: "Yes" },
+          { name: "移工手機載具條碼", code: "LA189", use: "No" },
+          { name: "移工類別", code: "LA198", use: "No" }
+        ]
+      },
+      {
+        id: "employer",
+        name: "雇主/客戶資料",
+        icon: "🏢",
+        fields: [
+          { name: "客戶中文名稱", code: "CU01", use: "No" },
+          { name: "客戶簡稱", code: "CU44", use: "Yes" },
+          { name: "客戶英文名稱", code: "CU01_E", use: "Yes" },
+          { name: "雇主編號", code: "CU00", use: "Yes" },
+          { name: "公司統編", code: "CU04", use: "Yes" },
+          { name: "公司地址", code: "CU05", use: "Yes" },
+          { name: "公司電話", code: "CU06", use: "Yes" },
+          { name: "公司傳真", code: "CU07", use: "Yes" },
+          { name: "負責人姓名", code: "CU02", use: "Yes" },
+          { name: "負責人英文姓名", code: "CU02_E", use: "Yes" },
+          { name: "負責人身份證字號", code: "CU13", use: "Yes" },
+          { name: "負責人出生日期", code: "CU12", use: "Yes" },
+          { name: "負責人戶籍地", code: "CU78", use: "Yes" },
+          { name: "聯絡人姓名", code: "CU24", use: "Yes" },
+          { name: "聯絡人電話", code: "CU25", use: "Yes" },
+          { name: "聯絡人行動", code: "CU34", use: "Yes" },
+          { name: "受顧者姓名", code: "LBM02", use: "Yes" },
+          { name: "受顧者身分證字號", code: "LBM03", use: "Yes" },
+          { name: "受顧者出生日期", code: "LBM04", use: "Yes" },
+          { name: "受顧者往生日", code: "LBM26", use: "Yes" },
+          { name: "居住地址", code: "LA64", use: "Yes" },
+          { name: "居住地址(英)", code: "LA64_E", use: "Yes" },
+          { name: "居住地電話", code: "LA88", use: "Yes" },
+          { name: "工作地址", code: "CU05_W", use: "Yes" },
+          { name: "英文工作地址", code: "CU05_EW", use: "Yes" },
+          { name: "工作地聯絡人", code: "CU24", use: "Yes" },
+          { name: "工作地電話", code: "CU25", use: "Yes" },
+          { name: "帳單地址", code: "CU87", use: "Yes" },
+          { name: "廠別", code: "CU054", use: "Yes" },
+          { name: "就安費地址", code: "CU053_1", use: "Yes" },
+          { name: "郵遞區號", code: "CU09_W", use: "Yes" },
+          { name: "稅籍編號", code: "CU95", use: "Yes" },
+          { name: "行業別", code: "CU28", use: "Yes" },
+          { name: "雇主Email", code: "CU82", use: "Yes" },
+          { name: "雇主手機載具條碼", code: "CU142", use: "No" }
+        ]
+      },
+      {
+        id: "permit",
+        name: "聘僱許可與函件",
+        icon: "📜",
+        fields: [
+          { name: "公告專案別", code: "LBE24", use: "Yes" },
+          { name: "承接日期", code: "LA21L", use: "Yes" },
+          { name: "年資", code: "LA03H", use: "Yes" },
+          { name: "聘僱起始日", code: "LA21", use: "Yes" },
+          { name: "聘僱期滿日", code: "LA22", use: "Yes" },
+          { name: "聘僱期滿日(年)", code: "LA22_3Y", use: "Yes" },
+          { name: "聘僱期滿日(月)", code: "LA22_3M", use: "Yes" },
+          { name: "聘僱期滿日(日)", code: "LA22_3D", use: "Yes" },
+          { name: "招募別", code: "LBE10A", use: "Yes" },
+          { name: "核准函發文日", code: "LBE03", use: "Yes" },
+          { name: "核准函號", code: "LBE05", use: "Yes" },
+          { name: "核准函人數", code: "LBE08", use: "Yes" },
+          { name: "核准函地址", code: "CU05_W", use: "Yes" },
+          { name: "核准函聯絡人", code: "CU24", use: "Yes" },
+          { name: "核准函聯絡電話", code: "CU25", use: "Yes" },
+          { name: "簽證函發文日", code: "LBO03", use: "Yes" },
+          { name: "簽證函號", code: "LBO05", use: "Yes" },
+          { name: "簽證函人數", code: "LBO09", use: "Yes" },
+          { name: "前任外勞", code: "LAV03", use: "Yes" },
+          { name: "(專案)廠別", code: "LA324", use: "Yes" },
+          { name: "遞補函發文日", code: "LBI03", use: "Yes" },
+          { name: "遞補函號", code: "LBI05", use: "Yes" },
+          { name: "(專案)廠區", code: "LA323", use: "Yes" },
+          { name: "遞補函人數", code: "LBI13", use: "Yes" },
+          { name: "剩餘工期", code: "LBI10_12", use: "Yes" },
+          { name: "可否展延", code: "LBI18", use: "Yes" },
+          { name: "遞補前外勞", code: "LBI08", use: "Yes" },
+          { name: "引進函種", code: "LBE", use: "Yes" },
+          { name: "引進函地址", code: "CU05_W", use: "Yes" },
+          { name: "可否循環", code: "LBE20", use: "Yes" },
+          { name: "初聘送件日", code: "LBF03S", use: "Yes" },
+          { name: "初聘發文日", code: "LBF03", use: "Yes" },
+          { name: "聘可收文日", code: "LA132", use: "Yes" },
+          { name: "初次聘僱許可函號", code: "LBF05", use: "Yes" },
+          { name: "補行否", code: "LAJ10", use: "Yes" },
+          { name: "初次聘僱起日", code: "LA21", use: "Yes" },
+          { name: "初次聘僱迄日", code: "LA22_2", use: "Yes" },
+          { name: "展聘發文日", code: "LBG03", use: "Yes" },
+          { name: "展延聘僱許可函號", code: "LBG05", use: "Yes" },
+          { name: "展延聘僱起日", code: "LA22_2A", use: "Yes" },
+          { name: "展延聘僱迄日", code: "LA22_3A", use: "Yes" },
+          { name: "備查函發文日", code: "LA57A2", use: "Yes" },
+          { name: "備查函號", code: "LA57A", use: "Yes" },
+          { name: "轉出函號", code: "LA57", use: "Yes" },
+          { name: "衍生遞補函發文日", code: "LBI03L", use: "Yes" },
+          { name: "廢聘函號", code: "LA144", use: "Yes" },
+          { name: "衍生遞補函號", code: "LBI05L", use: "Yes" },
+          { name: "衍生簽證函發文日", code: "LBO03L", use: "Yes" },
+          { name: "衍生簽證函號", code: "LBO05L", use: "Yes" },
+          { name: "工期", code: "LA22YMD", use: "Yes" },
+          { name: "已工作天數", code: "LA22_A", use: "Yes" },
+          { name: "剩餘天數", code: "LA22_B", use: "Yes" },
+          { name: "回鍋", code: "LA10", use: "Yes" },
+          { name: "工種", code: "LBJ02", use: "No" },
+          { name: "任用來源", code: "LA155", use: "No" },
+          { name: "轉入委任日", code: "LA86", use: "Yes" },
+          { name: "續聘轉換認證日", code: "LA180", use: "Yes" },
+          { name: "廢聘日期", code: "LA137", use: "Yes" },
+          { name: "承接再提高5%", code: "LBE71", use: "No" }
+        ]
+      },
+      {
+        id: "residence",
+        name: "居留證與出入境",
+        icon: "✈️",
+        fields: [
+          { name: "入境日", code: "LA08", use: "No" },
+          { name: "入境講習序號", code: "LA205", use: "Yes" },
+          { name: "交工日", code: "LA70", use: "Yes" },
+          { name: "最近入境日", code: "LA156", use: "Yes" },
+          { name: "入境日(年)", code: "LA08Y", use: "Yes" },
+          { name: "入境日(月)", code: "LA08M", use: "Yes" },
+          { name: "入境日(日)", code: "LA08D", use: "Yes" },
+          { name: "接管代碼", code: "LA20", use: "No" },
+          { name: "離管代碼", code: "LA30", use: "Yes" },
+          { name: "二年到期日(年)", code: "LA22_2Y", use: "Yes" },
+          { name: "二年到期日(月)", code: "LA22_2M", use: "Yes" },
+          { name: "二年到期日(日)", code: "LA22_2D", use: "Yes" },
+          { name: "居留證號", code: "LA12", use: "Yes" },
+          { name: "居留證可多次重出入", code: "LA212", use: "Yes" },
+          { name: "居留期限", code: "LA13", use: "Yes" },
+          { name: "居留期限(年)", code: "LA13Y", use: "Yes" },
+          { name: "居留期限(月)", code: "LA13M", use: "Yes" },
+          { name: "居留期限(日)", code: "LA13D", use: "Yes" },
+          { name: "居留證地", code: "LA64_1", use: "Yes" },
+          { name: "舊居證號", code: "LA190", use: "Yes" },
+          { name: "出境日期", code: "LA31", use: "Yes" },
+          { name: "出境日期(年)", code: "LA31Y", use: "Yes" },
+          { name: "出境日期(月)", code: "LA31M", use: "Yes" },
+          { name: "出境日期(日)", code: "LA31D", use: "Yes" },
+          { name: "出境原因", code: "LA28", use: "No" },
+          { name: "轉出日期", code: "LA31_4", use: "Yes" },
+          { name: "轉出日期(年)", code: "LA31_4Y", use: "Yes" },
+          { name: "轉出日期(月)", code: "LA31_4M", use: "Yes" },
+          { name: "轉出日期(日)", code: "LA31_4D", use: "Yes" },
+          { name: "逃跑日期", code: "LA31_3", use: "Yes" },
+          { name: "逃跑日期(年)", code: "LA31_3Y", use: "Yes" },
+          { name: "逃跑日期(月)", code: "LA31_3M", use: "Yes" },
+          { name: "逃跑日期(日)", code: "LA31_3D", use: "Yes" },
+          { name: "逃跑報案日期", code: "LAJ11_3", use: "Yes" },
+          { name: "逃跑報備函發文日", code: "LAJ03_3", use: "Yes" },
+          { name: "逃跑報備函號", code: "LAJ05_3", use: "Yes" },
+          { name: "入境通報勞工局", code: "LBD04_0002", use: "Yes" },
+          { name: "按指紋", code: "LBD04_0003", use: "Yes" },
+          { name: "預定離境日", code: "LA110", use: "Yes" },
+          { name: "解約日期", code: "LA31_C", use: "Yes" },
+          { name: "抵台航班", code: "LA47", use: "Yes" },
+          { name: "接送地址", code: "LA27", use: "Yes" },
+          { name: "首次抵台日", code: "LA101", use: "Yes" },
+          { name: "來台年限", code: "LA181", use: "No" }
+        ]
+      },
+      {
+        id: "health",
+        name: "體檢紀錄",
+        icon: "🏥",
+        fields: [
+          { name: "初入境體檢日", code: "LBH09_1", use: "Yes" },
+          { name: "報告日(初)", code: "LBH10_1", use: "Yes" },
+          { name: "體檢醫院(初)", code: "LBH08_1", use: "Yes" },
+          { name: "是否合格(初)", code: "LBH11_1", use: "Yes" },
+          { name: "不合格原因(初)", code: "LBH15_1", use: "Yes" },
+          { name: "複檢日(初)", code: "LBH16_1", use: "Yes" },
+          { name: "複檢是否合格(初)", code: "LBH17_1", use: "Yes" },
+          { name: "管理中心", code: "LBH18_1", use: "Yes" },
+          { name: "常用醫院", code: "LA24", use: "Yes" },
+          { name: "最近體檢日", code: "LA25", use: "Yes" },
+          { name: "6個月體檢日", code: "LBH09_6", use: "Yes" },
+          { name: "報告日(6月)", code: "LBH10_6", use: "Yes" },
+          { name: "衛生局發文日(6月)", code: "LBH03_6", use: "Yes" },
+          { name: "衛生局函號(6月)", code: "LBH05_6", use: "Yes" },
+          { name: "體檢醫院(6月)", code: "LBH08_6", use: "Yes" },
+          { name: "是否合格(6月)", code: "LBH11_6", use: "Yes" },
+          { name: "不合格原因(6月)", code: "LBH15_6", use: "Yes" },
+          { name: "複檢日(6月)", code: "LBH16_6", use: "Yes" },
+          { name: "複檢是否合格(6月)", code: "LBH17_6", use: "Yes" },
+          { name: "18個月體檢日", code: "LBH09_18", use: "Yes" },
+          { name: "報告日(18月)", code: "LBH10_18", use: "Yes" },
+          { name: "衛生局發文日(18月)", code: "LBH03_18", use: "Yes" },
+          { name: "衛生局函號(18月)", code: "LBH05_18", use: "Yes" },
+          { name: "體檢醫院(18月)", code: "LBH08_18", use: "Yes" },
+          { name: "是否合格(18月)", code: "LBH11_18", use: "Yes" },
+          { name: "不合格原因(18月)", code: "LBH15_18", use: "Yes" },
+          { name: "複檢日(18月)", code: "LBH16_18", use: "Yes" },
+          { name: "複檢是否合格(18月)", code: "LBH17_18", use: "Yes" },
+          { name: "30個月體檢日", code: "LBH09_30", use: "Yes" },
+          { name: "報告日(30月)", code: "LBH10_30", use: "Yes" },
+          { name: "衛生局發文日(30月)", code: "LBH03_30", use: "Yes" },
+          { name: "衛生局函號(30月)", code: "LBH05_30", use: "Yes" },
+          { name: "體檢醫院(30月)", code: "LBH08_30", use: "Yes" },
+          { name: "是否合格(30月)", code: "LBH11_30", use: "Yes" },
+          { name: "不合格原因(30月)", code: "LBH15_30", use: "Yes" },
+          { name: "複檢日(30月)", code: "LBH16_30", use: "Yes" },
+          { name: "複檢是否合格(30月)", code: "LBH17_30", use: "Yes" }
+        ]
+      },
+      {
+        id: "agency",
+        name: "仲介與業務",
+        icon: "🤝",
+        fields: [
+          { name: "仲介代號", code: "CO01", use: "Yes" },
+          { name: "國外仲介", code: "LA37", use: "Yes" },
+          { name: "國外仲介(簡稱)", code: "LBN04", use: "Yes" },
+          { name: "國內仲介", code: "CO02", use: "Yes" },
+          { name: "開發業務1", code: "CU27A", use: "Yes" },
+          { name: "開發業務2", code: "CU27B", use: "Yes" },
+          { name: "行政", code: "CU62", use: "No" },
+          { name: "業務員", code: "CU27", use: "No" },
+          { name: "移工業務員", code: "LA170", use: "Yes" },
+          { name: "客服員", code: "CU102", use: "Yes" },
+          { name: "雙語人員", code: "LA58", use: "Yes" },
+          { name: "開發業務1分群", code: "LBR20A", use: "No" },
+          { name: "開發業務2分群", code: "LBR20B", use: "No" },
+          { name: "業務員分群", code: "LBR20", use: "No" },
+          { name: "移工業務員分群", code: "LA170A", use: "No" }
+        ]
+      },
+      {
+        id: "insurance",
+        name: "保險與財務",
+        icon: "💰",
+        fields: [
+          { name: "銀行代號", code: "LA53", use: "Yes" },
+          { name: "貸款銀行", code: "LA65", use: "Yes" },
+          { name: "健保卡號", code: "LA203", use: "Yes" },
+          { name: "帳轉帳扣帳號", code: "LA54", use: "Yes" },
+          { name: "虛擬帳號", code: "LA192", use: "Yes" },
+          { name: "代辦意外險", code: "CU99", use: "Yes" },
+          { name: "意外險加保日", code: "LA129", use: "Yes" },
+          { name: "意外險退保日", code: "LA130", use: "Yes" },
+          { name: "意外險到期日", code: "LA85", use: "Yes" },
+          { name: "國外保險加保日", code: "LA178", use: "Yes" },
+          { name: "國外保險到期日", code: "LA179", use: "Yes" },
+          { name: "代領退稅人", code: "TAX23", use: "Yes" },
+          { name: "代辦勞保加保", code: "CU101", use: "No" },
+          { name: "代辦勞保退保", code: "CU147", use: "No" },
+          { name: "代辦健保加保", code: "CU101A", use: "No" },
+          { name: "代辦健保退保", code: "CU147A", use: "No" }
+        ]
+      },
+      {
+        id: "other",
+        name: "其他",
+        icon: "📋",
+        fields: [
+          { name: "工作部門", code: "LA126", use: "Yes" },
+          { name: "工作組別", code: "LA127", use: "Yes" },
+          { name: "工作班別", code: "LA67", use: "Yes" },
+          { name: "備註(移工)", code: "LA56", use: "Yes" },
+          { name: "備註(客戶)", code: "CU43", use: "Yes" },
+          { name: "代辦勞保加保", code: "CU101", use: "No" },
+          { name: "代辦勞保退保", code: "CU147", use: "No" },
+          { name: "代辦健保退保", code: "CU147A", use: "No" },
+          { name: "代辦健保加保", code: "CU101A", use: "No" },
+          { name: "移工宿舍", code: "LA92", use: "No" }
+        ]
       }
     ]
   }

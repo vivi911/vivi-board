@@ -3010,3 +3010,266 @@ body {
   color: rgba(255,255,255,0.35);
   font-size: 13px;
 }
+
+/* ===== 規格 Tab ===== */
+.spec-container {
+  position: fixed;
+  top: 52px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  background: #1B2A4A;
+}
+
+.spec-header {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 40px 0;
+}
+
+.spec-header-inner {
+  margin-bottom: 8px;
+}
+
+.spec-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 6px;
+}
+
+.spec-subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 16px;
+}
+
+.spec-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.spec-stat {
+  background: rgba(255,255,255,0.1);
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: rgba(255,255,255,0.7);
+  font-size: 13px;
+}
+
+.spec-stat-num {
+  font-weight: 700;
+  font-size: 18px;
+  color: #fff;
+  margin-right: 4px;
+}
+
+.spec-stat.stat-yes { border-left: 3px solid #4CAF50; }
+.spec-stat.stat-no { border-left: 3px solid #FF6B6B; }
+
+.spec-toolbar {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px 40px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.spec-toolbar-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(27,42,74,0.95);
+  backdrop-filter: blur(8px);
+  padding: 8px 0;
+}
+
+.spec-filter-group {
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.spec-filter-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.spec-filter-btn:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+}
+
+.spec-filter-btn.active {
+  background: #5B8DEF;
+  color: #fff;
+  font-weight: 600;
+}
+
+.spec-search {
+  flex: 1;
+  padding: 8px 14px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.spec-search::placeholder {
+  color: rgba(255,255,255,0.35);
+}
+
+.spec-search:focus {
+  border-color: #5B8DEF;
+  background: rgba(255,255,255,0.12);
+}
+
+.spec-body {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 40px 60px;
+}
+
+.spec-empty {
+  text-align: center;
+  color: rgba(255,255,255,0.4);
+  padding: 80px 0;
+  font-size: 15px;
+}
+
+.spec-category {
+  margin-bottom: 16px;
+}
+
+.spec-category-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.spec-category-header:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.spec-category-icon {
+  font-size: 18px;
+}
+
+.spec-category-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  flex: 1;
+}
+
+.spec-category-count {
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.08);
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.spec-category-arrow {
+  color: rgba(255,255,255,0.35);
+  font-size: 11px;
+  transition: transform 0.2s;
+}
+
+.spec-category-arrow.open {
+  transform: rotate(90deg);
+}
+
+.spec-category-body {
+  padding: 8px 0 0;
+}
+
+.spec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.spec-table thead th {
+  text-align: left;
+  padding: 8px 12px;
+  color: rgba(255,255,255,0.45);
+  font-weight: 500;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.spec-th-name { width: 45%; }
+.spec-th-code { width: 35%; }
+.spec-th-use { width: 20%; text-align: center !important; }
+
+.spec-table tbody tr {
+  transition: background 0.1s;
+}
+
+.spec-table tbody tr:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+.spec-table tbody td {
+  padding: 8px 12px;
+  color: rgba(255,255,255,0.85);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.spec-table tbody td code {
+  background: rgba(255,255,255,0.08);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #82B1FF;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.spec-row-disabled td {
+  color: rgba(255,255,255,0.35) !important;
+}
+
+.spec-row-disabled td code {
+  color: rgba(130,177,255,0.4) !important;
+}
+
+.spec-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.badge-yes {
+  background: rgba(76,175,80,0.2);
+  color: #81C784;
+}
+
+.badge-no {
+  background: rgba(255,107,107,0.15);
+  color: #FF8A80;
+}

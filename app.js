@@ -200,7 +200,9 @@ async function showApp() {
   if (tabParam && ['interview', 'research', 'architecture', 'spec'].includes(tabParam)) {
     currentTab = tabParam;
   } else {
-    currentTab = 'architecture';
+    // 依專案設定預設 tab
+    const proj = urlParams.get('project');
+    currentTab = (proj === 'asia-pacific') ? 'research' : 'architecture';
   }
 
   // 從 Firestore 載入資料（任一失敗不影響其他）
@@ -382,6 +384,8 @@ function switchTab(tabId) {
     loadInterview().then(renderInterview);
   } else if (tabId === 'research') {
     loadResearch().then(renderResearch);
+  } else if (tabId === 'spec') {
+    renderSpec();
   }
 }
 
@@ -607,6 +611,122 @@ async function saveResearch() {
 async function saveResearchNow() {
   if (researchSaveTimeout) clearTimeout(researchSaveTimeout);
   await saveResearch();
+}
+
+// ===== 規格欄位系統 =====
+let specFilter = 'all'; // all, yes, no
+let specSearch = '';
+let specOpenCategories = {};
+
+function renderSpec() {
+  const header = document.getElementById('spec-header');
+  const toolbar = document.getElementById('spec-toolbar');
+  const body = document.getElementById('spec-body');
+  const projName = PROJECTS[currentProject] ? PROJECTS[currentProject].name : currentProject;
+  const specData = SPEC_FIELDS[currentProject];
+
+  if (!specData) {
+    header.innerHTML = '';
+    toolbar.innerHTML = '';
+    body.innerHTML = '<div class="spec-empty">此專案尚無欄位規格資料</div>';
+    return;
+  }
+
+  // 統計
+  let totalFields = 0, yesCount = 0, noCount = 0;
+  specData.categories.forEach(cat => {
+    cat.fields.forEach(f => {
+      totalFields++;
+      if (f.use === 'Yes') yesCount++;
+      else noCount++;
+    });
+  });
+
+  header.innerHTML = `
+    <div class="spec-header-inner">
+      <div class="spec-title">${escapeHtml(projName)} — 欄位規格</div>
+      <div class="spec-subtitle">資料來源：${escapeHtml(specData.source)} ｜ 更新日期：${specData.updated}</div>
+      <div class="spec-stats">
+        <span class="spec-stat"><span class="spec-stat-num">${totalFields}</span> 總欄位</span>
+        <span class="spec-stat stat-yes"><span class="spec-stat-num">${yesCount}</span> 啟用</span>
+        <span class="spec-stat stat-no"><span class="spec-stat-num">${noCount}</span> 停用</span>
+      </div>
+    </div>
+  `;
+
+  toolbar.innerHTML = `
+    <div class="spec-toolbar-inner">
+      <div class="spec-filter-group">
+        <button class="spec-filter-btn ${specFilter === 'all' ? 'active' : ''}" onclick="setSpecFilter('all')">全部</button>
+        <button class="spec-filter-btn ${specFilter === 'yes' ? 'active' : ''}" onclick="setSpecFilter('yes')">啟用中</button>
+        <button class="spec-filter-btn ${specFilter === 'no' ? 'active' : ''}" onclick="setSpecFilter('no')">停用</button>
+      </div>
+      <input type="text" class="spec-search" placeholder="搜尋欄位名稱或代碼..." value="${escapeHtml(specSearch)}" oninput="setSpecSearch(this.value)">
+    </div>
+  `;
+
+  // 渲染分類
+  body.innerHTML = specData.categories.map(cat => {
+    const filtered = cat.fields.filter(f => {
+      if (specFilter === 'yes' && f.use !== 'Yes') return false;
+      if (specFilter === 'no' && f.use !== 'No') return false;
+      if (specSearch) {
+        const q = specSearch.toLowerCase();
+        return f.name.toLowerCase().includes(q) || f.code.toLowerCase().includes(q);
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) return '';
+
+    const isOpen = specOpenCategories[cat.id] !== false; // default open
+
+    return `
+    <div class="spec-category">
+      <div class="spec-category-header" onclick="toggleSpecCategory('${cat.id}')">
+        <span class="spec-category-icon">${cat.icon}</span>
+        <span class="spec-category-name">${escapeHtml(cat.name)}</span>
+        <span class="spec-category-count">${filtered.length} 欄</span>
+        <span class="spec-category-arrow ${isOpen ? 'open' : ''}">▶</span>
+      </div>
+      <div class="spec-category-body" style="display:${isOpen ? '' : 'none'}">
+        <table class="spec-table">
+          <thead>
+            <tr>
+              <th class="spec-th-name">欄位名稱</th>
+              <th class="spec-th-code">欄位代碼</th>
+              <th class="spec-th-use">啟用</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map(f => `
+            <tr class="${f.use === 'No' ? 'spec-row-disabled' : ''}">
+              <td>${escapeHtml(f.name)}</td>
+              <td><code>${escapeHtml(f.code)}</code></td>
+              <td><span class="spec-badge ${f.use === 'Yes' ? 'badge-yes' : 'badge-no'}">${f.use}</span></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setSpecFilter(filter) {
+  specFilter = filter;
+  renderSpec();
+}
+
+function setSpecSearch(value) {
+  specSearch = value;
+  // debounce
+  if (window._specSearchTimeout) clearTimeout(window._specSearchTimeout);
+  window._specSearchTimeout = setTimeout(() => renderSpec(), 200);
+}
+
+function toggleSpecCategory(catId) {
+  specOpenCategories[catId] = specOpenCategories[catId] === false ? true : false;
+  renderSpec();
 }
 
 // ===== 錄音系統 =====
@@ -1048,7 +1168,7 @@ function statusLabel(status) {
   switch (status) {
     case 'confirmed': return '\u2705 已確認';
     case 'discuss': return '\u{1F4CC} 待討論';
-    case 'gap': return '\u274C API缺口';
+    case 'gap': return '\u274C 待開發';
     default: return status;
   }
 }
@@ -1339,11 +1459,11 @@ document.addEventListener('wheel', (e) => {
 // 追蹤 IME 選字狀態
 let imeComposing = false;
 document.addEventListener('compositionstart', () => { imeComposing = true; });
-document.addEventListener('compositionend', () => { imeComposing = false; });
+document.addEventListener('compositionend', () => { setTimeout(() => { imeComposing = false; }, 150); });
 
 // Enter 送出（用 keyup 避免 IME composing 問題）
 document.addEventListener('keyup', (e) => {
-  if (e.key !== 'Enter' || e.shiftKey || imeComposing) return;
+  if (e.key !== 'Enter' || e.shiftKey || imeComposing || e.isComposing) return;
   if (e.target.id === 'comment-text') { addComment(); }
   if (e.target.id === 'note-text') { addNote(); }
 });
@@ -1569,7 +1689,7 @@ function renderBrief() {
       </div>
       <div class="brief-stat stat-gap">
         <div class="brief-stat-number">${counts.gap}</div>
-        <div class="brief-stat-label">API待串接</div>
+        <div class="brief-stat-label">待開發</div>
       </div>
     </div>
   </div>`;
