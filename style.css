@@ -3278,12 +3278,45 @@ body {
 }
 
 /* === 卡片規格編碼 === */
+.card-spec-codes-wrap {
+  position: relative;
+}
 .card-spec-codes {
   font-size: 11px;
   color: #8D6E63;
   margin-top: 4px;
   line-height: 1.4;
   letter-spacing: 0.3px;
+  cursor: default;
+}
+.card-spec-tooltip {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 6px;
+  background: #333;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.card-spec-codes-wrap:hover .card-spec-tooltip {
+  display: block;
+}
+.spec-tip-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.spec-tip-code {
+  color: #FFB74D;
+  font-weight: 600;
+  min-width: 40px;
 }
 
 /* === 側欄規格細目 === */

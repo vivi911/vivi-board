@@ -1199,7 +1199,7 @@ function renderBoard() {
       makeResizable(el, resizer);
     } else {
       const commentCount = card.comments ? card.comments.length : 0;
-      const specCodesHtml = card.specCodes ? `<div class="card-spec-codes" title="${getSpecTooltip(card.specCodes)}">${card.specCodes.join(' · ')}</div>` : '';
+      const specCodesHtml = card.specCodes ? `<div class="card-spec-codes-wrap"><div class="card-spec-codes">${card.specCodes.join(' · ')}</div><div class="card-spec-tooltip">${getSpecTooltipHtml(card.specCodes)}</div></div>` : '';
       el.innerHTML = `
         <div class="card-category">${card.category}</div>
         <div class="card-title">${card.title}</div>
@@ -1319,6 +1319,11 @@ function getSpecLookup() {
 function getSpecTooltip(codes) {
   const lookup = getSpecLookup();
   return codes.map(c => `${c}: ${lookup[c] || '—'}`).join('\n');
+}
+
+function getSpecTooltipHtml(codes) {
+  const lookup = getSpecLookup();
+  return codes.map(c => `<div class="spec-tip-row"><span class="spec-tip-code">${escapeHtml(c)}</span>${escapeHtml(lookup[c] || '—')}</div>`).join('');
 }
 
 function renderSpecCodesInPanel(codes) {
