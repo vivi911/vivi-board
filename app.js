@@ -44,7 +44,7 @@ const PROJECT_ROLES = {
   ],
   "asia-pacific": [
     { value: "品牌商", label: "品牌商（亞太資源）" },
-    { value: "開發商", label: "開發商（采盟科技）" }
+    { value: "開發商", label: "開發商（學得力）" }
   ]
 };
 
@@ -632,6 +632,12 @@ function renderSpec() {
     return;
   }
 
+  // 比對模式
+  if (specData.type === 'comparison') {
+    renderSpecComparison(specData, projName, header, toolbar, body);
+    return;
+  }
+
   // 統計
   let totalFields = 0, yesCount = 0, noCount = 0;
   specData.categories.forEach(cat => {
@@ -710,6 +716,127 @@ function renderSpec() {
       </div>
     </div>`;
   }).join('');
+}
+
+function renderSpecComparison(specData, projName, header, toolbar, body) {
+  const v = specData.vendors;
+
+  // 統計
+  let total = 0, bothCount = 0, v1OnlyCount = 0, v2OnlyCount = 0, pendingCount = 0;
+  specData.categories.forEach(cat => {
+    cat.fields.forEach(f => {
+      total++;
+      const has1 = f.v1.startsWith('✅') || f.v1.startsWith('△');
+      const has2 = f.v2.startsWith('✅');
+      if (f.pending) pendingCount++;
+      if (has1 && has2) bothCount++;
+      else if (has1 && !has2) v1OnlyCount++;
+      else if (!has1 && has2) v2OnlyCount++;
+    });
+  });
+
+  header.innerHTML = `
+    <div class="spec-header-inner">
+      <div class="spec-title">${escapeHtml(projName)} — 功能規格比對表</div>
+      <div class="spec-subtitle">資料來源：${escapeHtml(specData.source)} ｜ 更新日期：${specData.updated}</div>
+      <div class="spec-subtitle">${escapeHtml(specData.note)}</div>
+      <div class="spec-stats">
+        <span class="spec-stat"><span class="spec-stat-num">${total}</span> 總功能</span>
+        <span class="spec-stat stat-yes"><span class="spec-stat-num">${bothCount}</span> 兩者皆有</span>
+        <span class="spec-stat stat-v2"><span class="spec-stat-num">${v2OnlyCount}</span> 僅${v[1]}</span>
+        <span class="spec-stat stat-v1"><span class="spec-stat-num">${v1OnlyCount}</span> 僅${v[0]}</span>
+        <span class="spec-stat stat-pending"><span class="spec-stat-num">${pendingCount}</span> 待確認</span>
+      </div>
+    </div>
+  `;
+
+  toolbar.innerHTML = `
+    <div class="spec-toolbar-inner">
+      <div class="spec-filter-group">
+        <button class="spec-filter-btn ${specFilter === 'all' ? 'active' : ''}" onclick="setSpecFilter('all')">全部</button>
+        <button class="spec-filter-btn ${specFilter === 'v2only' ? 'active' : ''}" onclick="setSpecFilter('v2only')">僅${escapeHtml(v[1])}</button>
+        <button class="spec-filter-btn ${specFilter === 'v1only' ? 'active' : ''}" onclick="setSpecFilter('v1only')">僅${escapeHtml(v[0])}</button>
+        <button class="spec-filter-btn ${specFilter === 'pending' ? 'active' : ''}" onclick="setSpecFilter('pending')">待確認</button>
+      </div>
+      <input type="text" class="spec-search" placeholder="搜尋功能名稱或編碼..." value="${escapeHtml(specSearch)}" oninput="setSpecSearch(this.value)">
+    </div>
+  `;
+
+  let lastParent = '';
+  body.innerHTML = specData.categories.map(cat => {
+    const filtered = cat.fields.filter(f => {
+      const has1 = f.v1.startsWith('✅') || f.v1.startsWith('△');
+      const has2 = f.v2.startsWith('✅');
+      if (specFilter === 'v2only' && (has1 || !has2)) return false;
+      if (specFilter === 'v1only' && (!has1 || has2)) return false;
+      if (specFilter === 'pending' && !f.pending) return false;
+      if (specSearch) {
+        const q = specSearch.toLowerCase();
+        return f.name.toLowerCase().includes(q) || f.code.toLowerCase().includes(q);
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) return '';
+
+    const isOpen = specOpenCategories[cat.id] !== false;
+
+    // 父分類標題
+    let parentHeader = '';
+    if (cat.parent && cat.parent !== lastParent) {
+      lastParent = cat.parent;
+      parentHeader = `<div class="spec-compare-parent">${escapeHtml(cat.parent)}</div>`;
+    }
+
+    return `${parentHeader}
+    <div class="spec-category">
+      <div class="spec-category-header" onclick="toggleSpecCategory('${cat.id}')">
+        <span class="spec-category-icon">${cat.icon}</span>
+        <span class="spec-category-name">${escapeHtml(cat.name)}</span>
+        <span class="spec-category-count">${filtered.length} 項</span>
+        <span class="spec-category-arrow ${isOpen ? 'open' : ''}">▶</span>
+      </div>
+      <div class="spec-category-body" style="display:${isOpen ? '' : 'none'}">
+        <table class="spec-table spec-compare-table">
+          <thead>
+            <tr>
+              <th class="spec-th-code">編碼</th>
+              <th class="spec-th-name">功能項目</th>
+              <th class="spec-th-vendor">${escapeHtml(v[0])}</th>
+              <th class="spec-th-vendor">${escapeHtml(v[1])}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map(f => `
+            <tr class="${f.pending ? 'spec-row-pending' : ''}">
+              <td><code>${escapeHtml(f.code)}</code></td>
+              <td>${escapeHtml(f.name)}</td>
+              <td class="spec-compare-cell">${renderCompareValue(f.v1)}</td>
+              <td class="spec-compare-cell">${renderCompareValue(f.v2)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('')
+
+  // 待確認事項
+  + (specData.pendingItems ? `
+    <div class="spec-pending-section">
+      <div class="spec-pending-title">待確認事項</div>
+      <ol class="spec-pending-list">
+        ${specData.pendingItems.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+      </ol>
+    </div>` : '');
+}
+
+function renderCompareValue(val) {
+  if (val === '✅') return '<span class="spec-compare-yes">✅</span>';
+  if (val === '—') return '<span class="spec-compare-no">—</span>';
+  if (val === '待討論') return '<span class="spec-compare-pending">待討論</span>';
+  if (val.startsWith('✅')) return '<span class="spec-compare-yes">' + escapeHtml(val) + '</span>';
+  if (val.startsWith('△')) return '<span class="spec-compare-partial">' + escapeHtml(val) + '</span>';
+  return escapeHtml(val);
 }
 
 function setSpecFilter(filter) {

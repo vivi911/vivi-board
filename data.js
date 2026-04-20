@@ -177,7 +177,7 @@ const PROJECTS = {
       ],
       team: [
         { role: "專案管理", name: "Vivi", org: "goaskvivi" },
-        { role: "開發商", name: "Sam Hsu", org: "采盟科技" },
+        { role: "開發商", name: "Sam Hsu", org: "學得力" },
         { role: "POS 廠商", name: "凱惠", org: "凱惠資訊" },
         { role: "業主", name: "美力時尚醫美", org: "bebetterone.com" }
       ],
@@ -607,17 +607,17 @@ BA照片流程：
       ],
       apis: { existing: [], gaps: [] },
       discussions: [
-        { text: "客戶代碼對照表（地點 → V 編號）—— 等 Sean 提供", done: false },
-        { text: "業務代碼對照表（司機 → A/B 編號）—— 等 Sean 提供", done: false },
-        { text: "會計多久上傳一次 A1？每天 / 每週？", done: false },
-        { text: "司機回報格式是否所有司機都一致？", done: false },
+        { text: "客戶代碼對照表（地點 → V 編號）—— 247 筆已匯入 Firestore", done: true },
+        { text: "業務代碼對照表（司機 → A/B 編號）—— 10 位已硬編碼", done: true },
+        { text: "會計每天上傳 A1", done: true },
+        { text: "司機回報格式全員一致", done: true },
         { text: "A1 電商匯入中心「販賣機」自訂商店的欄位確認", done: false },
-        { text: "Excel 放雲端 vs 儀表板勾選匯出，會計偏好哪種？", done: false },
-        { text: "一則訊息可能包含多台機器回報（如同時報兩個地點），AI 需拆成多筆銷貨單 —— 確認是否常見", done: false },
-        { text: "品號是否永遠用 RAN00003？還是有些回報需用 RAN00001 盲玩(24)、RAN00002 盲玩(30)、RAN00004 入金、RAN00005 電子支付？", done: false },
-        { text: "司機回報群組有幾個？Bot 需加入幾個群？", done: false },
+        { text: "Excel 放雲端 vs 儀表板勾選匯出 —— 已採用儀表板方案", done: true },
+        { text: "一則訊息一台機器，不需拆分", done: true },
+        { text: "品號判斷已實作：一般 → RAN00003（混和產品/瓶），含「入金」→ RAN00004（產品入金/個）。電子支付 RAN00005 待後續。", done: true },
+        { text: "司機回報群組只有一個，Bot 加入一個群即可", done: true },
         { text: "LINE OA 帳號：使用默默小幫手", done: true },
-        { text: "Google Drive 共用資料夾用誰的帳號？goaskvivi 還是 Sean 公司？", done: false }
+        { text: "不需 Google Drive，改用儀表板匯出", done: true }
       ],
       infrastructure: [
         {
@@ -695,7 +695,8 @@ BA照片流程：
         title: "AI 解析 → 寫入資料庫",
         status: "discuss",
         col: 2, row: 0,
-        next: ["s-flow4a", "s-flow4b"],
+        next: ["s-flow4b"],
+        mockup: "sean-driver-report",
         content: `AI 從訊息抓出 3 個關鍵欄位：
 
 1. 地點 → 查對照表 → 客戶代碼（V10067）
@@ -703,40 +704,23 @@ BA照片流程：
 3. 司機名 → 查對照表 → 業務代碼（A06）
 
 固定欄位（不需解析）：
-・品號：RAN00003（販賣機混和產品）
 ・收款方式：月結/未收款/貨到付款
 ・發票聯式：不開
 ・課稅別：無
+
+品號自動判斷（已實作）：
+・一般回報 → RAN00003 販賣機混和產品（單位：瓶）
+・文字含「入金」→ RAN00004 販賣機產品入金（單位：個）
 
 解析結果寫入 Firestore`,
         comments: []
       },
       {
-        id: "s-flow4a",
-        category: "路徑A",
-        title: "方案 A：Excel 放 Google Drive",
-        status: "discuss",
-        col: 4, row: 0,
-        next: ["s-flow5"],
-        mockup: "sean-option-a",
-        content: `每日自動產出一份 A1 格式 Excel 存 Google Drive
-
-會計流程：
-1. 打開 Google Drive 共用資料夾
-2. 下載今天的 Excel（如 2026-04-13.xlsx）
-3. 上傳 A1 電商匯入中心
-4. 批次轉銷貨單
-
-✅ 優點：簡單、成本低、在報價範圍內
-⚠️ 缺點：沒有即時總覽、不知道哪些已入帳`,
-        comments: []
-      },
-      {
         id: "s-flow4b",
-        category: "路徑B",
-        title: "方案 B：儀表板勾選匯出",
-        status: "discuss",
-        col: 6, row: 0,
+        category: "流程4",
+        title: "儀表板勾選匯出",
+        status: "confirmed",
+        col: 4, row: 0,
         next: ["s-flow5"],
         mockup: "sean-option-b",
         content: `會計打開網頁儀表板，即時看到所有銷貨：
@@ -785,7 +769,7 @@ BA照片流程：
 2. 肉眼找出地點、數量、金額
 3. 開 A1 → 選客戶（V10067 微風松高香堤）
 4. 選業務（B01 陳翔）
-5. 選品號（RAN00003 販賣機混和產品）
+5. 選品號（RAN00003 混和產品 或 RAN00004 產品入金）
 6. 手動輸入數量 268、金額 11,340
 7. 儲存 → 再開下一筆
 每筆約 2-3 分鐘 × 每月數百筆 = 大量時間`,
@@ -827,7 +811,7 @@ BA照片流程：
       ],
       team: [
         { role: "品牌商", name: "亞太資源", org: "亞太資源管理顧問（股）" },
-        { role: "開發商", name: "Sam Hsu", org: "采盟科技" },
+        { role: "開發商", name: "Sam Hsu", org: "學得力" },
         { role: "專案管理", name: "Vivi", org: "goaskvivi" }
       ],
       locations: ["台北總公司", "桃園", "台中", "台南", "高雄", "花蓮"],
@@ -1043,6 +1027,137 @@ BA照片流程：
 
 // ===== 規格欄位資料 =====
 const SPEC_FIELDS = {
+  "meili-emr": {
+    type: "comparison",
+    source: "霈方電子病歷報價單-回簽.pdf vs 白板需求規劃",
+    updated: "2026-04-20",
+    vendors: ["類神經", "采盟（Sam）"],
+    note: "據點：(微整)站前4F ／(體雕)站前11F ／(微整)忠孝7F ／(微整)忠孝健康7F ／(體雕)忠孝國際3F",
+    pendingItems: [
+      "B3-2：控場指派醫師的時機——報到時就定？還是諮詢確認項目後才派？",
+      "C2/C3：凱惠消費單／耗療 API——凱惠表示複雜，需另行討論",
+      "忠孝國際 3F 的凱惠館別代碼——4 月新開，API 規格書尚未納入"
+    ],
+    categories: [
+      {
+        id: "pre_visit",
+        name: "A. 到院前（預約階段）",
+        icon: "📅",
+        fields: [
+          { name: "邀約管理／取代 GSheet（小編）", code: "A1", v1: "—", v2: "✅" },
+          { name: "預約／掛號管理（小編）", code: "A2", v1: "✅", v2: "✅" },
+          { name: "醫師班表管理（小編/主管）", code: "A3", v1: "✅", v2: "✅" },
+          { name: "行銷歸因追蹤（投手）", code: "A4", v1: "—", v2: "✅" },
+          { name: "查詢凱惠可預約床位與時段（凱惠 API）", code: "A5", v1: "✅", v2: "✅" },
+          { name: "預約建立與更新寫入凱惠（凱惠 API）", code: "A6", v1: "✅", v2: "✅" }
+        ]
+      },
+      {
+        id: "new_checkin",
+        name: "B1. 新客報到",
+        icon: "🆕",
+        parent: "B. 到院中（臨床流程）",
+        fields: [
+          { name: "客人填寫完整基本資料（客人）", code: "B1-1", v1: "✅", v2: "✅" },
+          { name: "過敏史／用藥習慣／醫美經驗問卷（客人）", code: "B1-2", v1: "✅", v2: "✅" },
+          { name: "QR code 綁定病歷（客人）", code: "B1-3", v1: "✅", v2: "✅" },
+          { name: "查詢凱惠判斷新客／舊客（凱惠 API）", code: "B1-4", v1: "✅", v2: "✅" },
+          { name: "新客建檔寫入凱惠（凱惠 API）", code: "B1-5", v1: "✅", v2: "✅" }
+        ]
+      },
+      {
+        id: "return_checkin",
+        name: "B2. 舊客報到",
+        icon: "🔄",
+        fields: [
+          { name: "QR code 報到（客人）", code: "B2-1", v1: "✅", v2: "✅" },
+          { name: "確認／更新基本資料（客人）", code: "B2-2", v1: "✅", v2: "✅" },
+          { name: "更新客戶資料寫入凱惠（凱惠 API）", code: "B2-3", v1: "✅", v2: "✅" }
+        ]
+      },
+      {
+        id: "consultation",
+        name: "B3. 諮詢（確認項目 → 消費單 → 簽同意書）",
+        icon: "💬",
+        fields: [
+          { name: "控場指派諮詢師（控場／報到時）", code: "B3-1", v1: "—", v2: "✅" },
+          { name: "控場指派醫師（控場／待確認指派時機）", code: "B3-2", v1: "—", v2: "✅", pending: true },
+          { name: "諮詢師評估 + 填諮詢紀錄（諮詢師）", code: "B3-3", v1: "—", v2: "✅" },
+          { name: "推薦療程計畫（諮詢師）", code: "B3-4", v1: "—", v2: "✅" },
+          { name: "術前／術後照片 Before/After（諮詢師/護理師）", code: "B3-5", v1: "✅", v2: "✅" },
+          { name: "電子同意書簽署（客人／確認項目後、施作前）", code: "B3-6", v1: "✅", v2: "✅" }
+        ]
+      },
+      {
+        id: "treatment",
+        name: "B4. 施作",
+        icon: "💉",
+        fields: [
+          { name: "療程施作紀錄——部位、劑量（醫師）", code: "B4-1", v1: "✅", v2: "✅" },
+          { name: "醫囑填寫（醫師）", code: "B4-2", v1: "✅", v2: "✅" },
+          { name: "電子處方箋（醫師）", code: "B4-3", v1: "✅", v2: "✅" },
+          { name: "醫生輸入治療建議與藥物資訊（醫師）", code: "B4-4", v1: "✅", v2: "✅" },
+          { name: "產出列印醫囑單並數位存檔（醫師）", code: "B4-5", v1: "✅", v2: "✅" },
+          { name: "醫師電子簽章（醫師）", code: "B4-6", v1: "✅", v2: "✅" }
+        ]
+      },
+      {
+        id: "upload",
+        name: "B5. 紀錄上傳",
+        icon: "📤",
+        fields: [
+          { name: "皮膚檢測 BA 照——欄位上傳（護理師）", code: "B5-1", v1: "✅", v2: "✅" },
+          { name: "Inbody 數據紀錄——欄位上傳（護理師）", code: "B5-2", v1: "✅", v2: "✅" },
+          { name: "血值紀錄——欄位上傳（護理師）", code: "B5-3", v1: "✅", v2: "✅" },
+          { name: "體雕紀錄（醫師/護理師）", code: "B5-4", v1: "—", v2: "✅" }
+        ]
+      },
+      {
+        id: "post_visit",
+        name: "C. 離院後（追蹤與核銷）",
+        icon: "📋",
+        fields: [
+          { name: "醫師術後追蹤紀錄（醫師）", code: "C1", v1: "✅", v2: "✅" },
+          { name: "讀取凱惠消費單與耗療紀錄（凱惠 API 待討論）", code: "C2", v1: "—", v2: "待討論", pending: true },
+          { name: "耗療核銷與堂數進度（凱惠 API 待討論）", code: "C3", v1: "—", v2: "待討論", pending: true }
+        ]
+      },
+      {
+        id: "compliance",
+        name: "D1. 同意書合規",
+        icon: "📜",
+        parent: "D. 幕後管理",
+        fields: [
+          { name: "IP 位置記錄（系統）", code: "D1-1", v1: "✅", v2: "✅" },
+          { name: "多裝置簽署——手機/平板/電腦（客人）", code: "D1-2", v1: "✅", v2: "✅" },
+          { name: "簽名時間戳（系統）", code: "D1-3", v1: "✅", v2: "✅" },
+          { name: "衛福部規範保存 7 年（系統）", code: "D1-4", v1: "✅", v2: "✅" }
+        ]
+      },
+      {
+        id: "admin",
+        name: "D2. 後台與報表",
+        icon: "📊",
+        fields: [
+          { name: "角色權限管理（主管）", code: "D2-1", v1: "✅（4 種）", v2: "✅（6 種）" },
+          { name: "跨店病歷即時調閱（醫師/主管）", code: "D2-2", v1: "✅（僅主管）", v2: "✅（醫師也可）" },
+          { name: "凱惠 POS 整合（雙向 API 串接）", code: "D2-3", v1: "△ 未指名", v2: "✅ 深度串接" },
+          { name: "跨店營收統計報表（總公司主管）", code: "D2-4", v1: "—", v2: "✅" },
+          { name: "行銷分析報表（總公司主管）", code: "D2-5", v1: "—", v2: "✅" }
+        ]
+      },
+      {
+        id: "ops",
+        name: "D3. 維運",
+        icon: "🔧",
+        fields: [
+          { name: "年度維護更新（系統）", code: "D3-1", v1: "✅（$200,000/年）", v2: "✅" },
+          { name: "資料備份（系統）", code: "D3-2", v1: "✅", v2: "✅" },
+          { name: "資安與隱私管理（系統）", code: "D3-3", v1: "✅", v2: "✅" }
+        ]
+      }
+    ]
+  },
   "asia-pacific": {
     source: "聘軒系統報表 xml816 / MGT08",
     file: "報表欄位.xlsx",
