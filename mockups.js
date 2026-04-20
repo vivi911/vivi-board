@@ -477,5 +477,46 @@ const MOCKUPS = {
           <button style="background: #fff; color: #666; border: 1px solid #ddd; padding: 8px 20px; border-radius: 6px; cursor: pointer;">全選今日</button>
         </div>
       </div>`
+  },
+
+  "sean-driver-report": {
+    title: "司機回報：兩種品號判斷",
+    html: `
+      <div style="display: flex; gap: 16px; padding: 12px;">
+        <div style="flex: 1; background: #e8f5e9; border-radius: 10px; padding: 14px; font-size: 12px; line-height: 1.7; border: 2px solid #4caf50;">
+          <div style="font-weight: bold; color: #2e7d32; margin-bottom: 8px; font-size: 13px;">\u2705 一般回報 \u2192 RAN00003 混和產品（瓶）</div>
+          <div style="background: #fff; border-radius: 8px; padding: 10px; color: #333;">
+            0327-0415 中正紀念堂 2號機<br>
+            4243 汪汪隊天天<br>
+            國稅局單照號碼<br>
+            AY0008557<br>
+            0415本次收款 3880/85005<br>
+            0327前次收款 3708/76830<br>
+            本次實收172罐8175元<br>
+            銷售未歸零。Gary<br>
+            趙結已完成。
+          </div>
+          <div style="margin-top: 8px; text-align: center; color: #2e7d32; font-weight: bold;">
+            \u2192 品號 RAN00003・單位：瓶
+          </div>
+        </div>
+        <div style="flex: 1; background: #fff3e0; border-radius: 10px; padding: 14px; font-size: 12px; line-height: 1.7; border: 2px solid #ff9800;">
+          <div style="font-weight: bold; color: #e65100; margin-bottom: 8px; font-size: 13px;">\u26A0 含「入金」\u2192 RAN00004 產品入金（個）</div>
+          <div style="background: #fff; border-radius: 8px; padding: 10px; color: #333;">
+            0323-0415 遠百高雄B1<br>
+            3007 吹泡泡 F7CAU<br>
+            國稅局單照號碼<br>
+            EY0002251<br>
+            0415本次收款 15216/64390<br>
+            0323前次收款 14980/54990<br>
+            本次收款236罐9400元<br>
+            銷量沒有歸零。<span style="background: #ffeb3b; padding: 1px 4px; border-radius: 3px; font-weight: bold;">需入金</span>。Paul<br>
+            分項沒有列印
+          </div>
+          <div style="margin-top: 8px; text-align: center; color: #e65100; font-weight: bold;">
+            \u2192 品號 RAN00004・單位：個
+          </div>
+        </div>
+      </div>`
   }
 };

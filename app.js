@@ -752,26 +752,15 @@ function renderSpecComparison(specData, projName, header, toolbar, body) {
       <div class="spec-subtitle">資料來源：${escapeHtml(specData.source)} ｜ 更新日期：${specData.updated}</div>
       <div class="spec-subtitle">${escapeHtml(specData.note)}</div>
       <div class="spec-stats">
-        <span class="spec-stat"><span class="spec-stat-num">${total}</span> 總功能</span>
+        <span class="spec-stat"><span class="spec-stat-num">${total}</span> 全功能</span>
         <span class="spec-stat stat-yes"><span class="spec-stat-num">${bothCount}</span> 兩者皆有</span>
-        <span class="spec-stat stat-v2"><span class="spec-stat-num">${v2OnlyCount}</span> 僅${v[1]}</span>
-        <span class="spec-stat stat-v1"><span class="spec-stat-num">${v1OnlyCount}</span> 僅${v[0]}</span>
+        <span class="spec-stat stat-v2"><span class="spec-stat-num">${v2OnlyCount}</span> 采盟新增</span>
         <span class="spec-stat stat-pending"><span class="spec-stat-num">${pendingCount}</span> 待確認</span>
       </div>
     </div>
   `;
 
-  toolbar.innerHTML = `
-    <div class="spec-toolbar-inner">
-      <div class="spec-filter-group">
-        <button class="spec-filter-btn ${specFilter === 'all' ? 'active' : ''}" onclick="setSpecFilter('all')">全部</button>
-        <button class="spec-filter-btn ${specFilter === 'v2only' ? 'active' : ''}" onclick="setSpecFilter('v2only')">僅${escapeHtml(v[1])}</button>
-        <button class="spec-filter-btn ${specFilter === 'v1only' ? 'active' : ''}" onclick="setSpecFilter('v1only')">僅${escapeHtml(v[0])}</button>
-        <button class="spec-filter-btn ${specFilter === 'pending' ? 'active' : ''}" onclick="setSpecFilter('pending')">待確認</button>
-      </div>
-      <input type="text" class="spec-search" placeholder="搜尋功能名稱或編碼..." value="${escapeHtml(specSearch)}" oninput="setSpecSearch(this.value)">
-    </div>
-  `;
+  toolbar.innerHTML = '';
 
   let lastParent = '';
   body.innerHTML = specData.categories.map(cat => {
