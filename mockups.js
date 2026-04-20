@@ -230,6 +230,210 @@ const MOCKUPS = {
       </div>`
   },
 
+  // ===== EMR 新客報到 =====
+  "flow3a-mockup": {
+    title: "電子病歷：新客報到（手機畫面）",
+    html: `
+      <div class="mock-spreadsheet after" style="max-width:360px; margin:0 auto;">
+        <div class="mock-emr-header" style="text-align:center;">
+          <span>美力時尚診所</span>
+        </div>
+        <div style="padding:16px; background:#fff;">
+          <div style="text-align:center; margin-bottom:16px;">
+            <div style="font-size:18px; font-weight:600; color:#333;">歡迎蒞臨！</div>
+            <div style="font-size:13px; color:#888; margin-top:4px;">請填寫以下基本資料</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:12px; font-size:13px;">
+            <div>
+              <div style="color:#666; margin-bottom:4px;">姓名 <span style="color:red">*</span></div>
+              <div style="border:1px solid #ddd; border-radius:6px; padding:8px 10px; color:#333;">王小美</div>
+            </div>
+            <div>
+              <div style="color:#666; margin-bottom:4px;">手機號碼 <span style="color:red">*</span></div>
+              <div style="border:1px solid #ddd; border-radius:6px; padding:8px 10px; color:#333;">0912-345-678</div>
+            </div>
+            <div>
+              <div style="color:#666; margin-bottom:4px;">身分證字號 <span style="color:red">*</span></div>
+              <div style="border:1px solid #ddd; border-radius:6px; padding:8px 10px; color:#333;">A123456789</div>
+            </div>
+            <div>
+              <div style="color:#666; margin-bottom:4px;">生日</div>
+              <div style="border:1px solid #ddd; border-radius:6px; padding:8px 10px; color:#333;">1990/05/15</div>
+            </div>
+            <div style="border-top:1px solid #eee; padding-top:12px; margin-top:4px;">
+              <div style="color:#333; font-weight:600; margin-bottom:8px;">醫療問卷</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <span style="background:#FFF3E0; color:#E65100; padding:4px 10px; border-radius:12px; font-size:12px;">✅ 藥物過敏</span>
+                <span style="background:#f5f5f5; color:#999; padding:4px 10px; border-radius:12px; font-size:12px;">懷孕中</span>
+                <span style="background:#f5f5f5; color:#999; padding:4px 10px; border-radius:12px; font-size:12px;">肌無力症</span>
+                <span style="background:#FFF3E0; color:#E65100; padding:4px 10px; border-radius:12px; font-size:12px;">✅ 蟹足腫</span>
+              </div>
+            </div>
+            <div>
+              <div style="color:#666; margin-bottom:4px;">過敏說明</div>
+              <div style="border:1px solid #ddd; border-radius:6px; padding:8px 10px; color:#333;">對磺胺類藥物過敏</div>
+            </div>
+            <div style="text-align:center; margin-top:8px;">
+              <div style="background:#8D6E63; color:#fff; padding:12px; border-radius:8px; font-weight:600; cursor:pointer;">送出資料</div>
+            </div>
+          </div>
+        </div>
+        <div class="mock-sheet-improvements">
+          <div class="mock-improve">\\u2705 手機直接填寫，取代紙本貴賓資料表</div>
+          <div class="mock-improve">\\u2705 過敏史/用藥勾選，結構化存檔</div>
+          <div class="mock-improve">\\u2705 填完自動寫入凱惠（API #2 + #3）</div>
+        </div>
+      </div>`
+  },
+
+  // ===== EMR 控場派工 =====
+  "flow4-mockup": {
+    title: "電子病歷：控場派工看板",
+    html: `
+      <div class="mock-spreadsheet after">
+        <div class="mock-emr-header">
+          <span>電子病歷</span>
+          <span class="mock-emr-nav">控場派工</span>
+          <span class="mock-emr-user">控場 Linda</span>
+        </div>
+        <div style="padding:12px; background:#FAFAFA; display:flex; gap:8px; font-size:12px;">
+          <span style="background:#E8F5E9; color:#2E7D32; padding:4px 12px; border-radius:12px; font-weight:600;">今日到店 12</span>
+          <span style="background:#FFF3E0; color:#E65100; padding:4px 12px; border-radius:12px;">等候中 3</span>
+          <span style="background:#E3F2FD; color:#1565C0; padding:4px 12px; border-radius:12px;">諮詢中 5</span>
+          <span style="background:#F3E5F5; color:#7B1FA2; padding:4px 12px; border-radius:12px;">施作中 4</span>
+        </div>
+        <table class="mock-sheet-table emr">
+          <thead>
+            <tr>
+              <th>報到時間</th>
+              <th>客戶</th>
+              <th>類型</th>
+              <th>諮詢項目</th>
+              <th>諮詢師</th>
+              <th>醫師</th>
+              <th>狀態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>09:30</td>
+              <td>王小美</td>
+              <td><span style="background:#E3F2FD; color:#1565C0; padding:2px 8px; border-radius:8px; font-size:11px;">新客</span></td>
+              <td>音波拉皮</td>
+              <td><span style="background:#E8F5E9; color:#2E7D32; padding:2px 8px; border-radius:8px; font-size:11px;">Amy ✓</span></td>
+              <td><span style="background:#f5f5f5; color:#999; padding:2px 8px; border-radius:8px; font-size:11px;">待指派</span></td>
+              <td><span style="background:#FFF3E0; color:#E65100; padding:2px 8px; border-radius:8px; font-size:11px;">等候中</span></td>
+            </tr>
+            <tr>
+              <td>09:45</td>
+              <td>陳美華</td>
+              <td><span style="background:#F3E5F5; color:#7B1FA2; padding:2px 8px; border-radius:8px; font-size:11px;">舊客</span></td>
+              <td>肉毒 第2次</td>
+              <td><span style="background:#E8F5E9; color:#2E7D32; padding:2px 8px; border-radius:8px; font-size:11px;">Bella ✓</span></td>
+              <td><span style="background:#E8F5E9; color:#2E7D32; padding:2px 8px; border-radius:8px; font-size:11px;">張醫師 ✓</span></td>
+              <td><span style="background:#E3F2FD; color:#1565C0; padding:2px 8px; border-radius:8px; font-size:11px;">諮詢中</span></td>
+            </tr>
+            <tr>
+              <td>10:00</td>
+              <td>林雅琪</td>
+              <td><span style="background:#F3E5F5; color:#7B1FA2; padding:2px 8px; border-radius:8px; font-size:11px;">舊客</span></td>
+              <td>玻尿酸 回診</td>
+              <td><span style="background:#E8F5E9; color:#2E7D32; padding:2px 8px; border-radius:8px; font-size:11px;">Cathy ✓</span></td>
+              <td><span style="background:#E8F5E9; color:#2E7D32; padding:2px 8px; border-radius:8px; font-size:11px;">李醫師 ✓</span></td>
+              <td><span style="background:#F3E5F5; color:#7B1FA2; padding:2px 8px; border-radius:8px; font-size:11px;">施作中</span></td>
+            </tr>
+            <tr>
+              <td>10:15</td>
+              <td>張雅芳</td>
+              <td><span style="background:#E3F2FD; color:#1565C0; padding:2px 8px; border-radius:8px; font-size:11px;">新客</span></td>
+              <td>皮秒雷射</td>
+              <td><span style="background:#f5f5f5; color:#999; padding:2px 8px; border-radius:8px; font-size:11px;">待指派</span></td>
+              <td><span style="background:#f5f5f5; color:#999; padding:2px 8px; border-radius:8px; font-size:11px;">—</span></td>
+              <td><span style="background:#FFF3E0; color:#E65100; padding:2px 8px; border-radius:8px; font-size:11px;">等候中</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="mock-sheet-improvements">
+          <div class="mock-improve">\\u2705 即時看今日報到清單與狀態</div>
+          <div class="mock-improve">\\u2705 一鍵指派諮詢師/醫師</div>
+          <div class="mock-improve">\\u2705 新客/舊客一眼區分</div>
+        </div>
+      </div>`
+  },
+
+  // ===== EMR 諮詢師作業 =====
+  "flow5-mockup": {
+    title: "電子病歷：諮詢師紀錄",
+    html: `
+      <div class="mock-spreadsheet after">
+        <div class="mock-emr-header">
+          <span>電子病歷</span>
+          <span class="mock-emr-nav">諮詢紀錄</span>
+          <span class="mock-emr-user">諮詢師 Amy</span>
+        </div>
+        <div style="padding:12px 16px; background:#FAFAFA; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:16px; font-weight:600; color:#333;">王小美 <span style="font-size:12px; color:#888; font-weight:400;">新客 · 1990/05/15 · 站前4F</span></div>
+            <div style="font-size:12px; color:#999; margin-top:2px;">過敏：磺胺類藥物 ｜ 蟹足腫體質</div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <span style="background:#E3F2FD; color:#1565C0; padding:4px 10px; border-radius:8px; font-size:11px;">查看病歷</span>
+            <span style="background:#FCE4EC; color:#C62828; padding:4px 10px; border-radius:8px; font-size:11px;">上傳照片</span>
+          </div>
+        </div>
+        <div style="padding:16px; display:flex; flex-direction:column; gap:14px; font-size:13px; background:#fff;">
+          <div>
+            <div style="color:#666; margin-bottom:6px; font-weight:600;">諮詢項目</div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <span style="background:#8D6E63; color:#fff; padding:4px 12px; border-radius:12px; font-size:12px;">音波拉皮</span>
+              <span style="background:#f5f5f5; color:#666; padding:4px 12px; border-radius:12px; font-size:12px;">＋ 加入項目</span>
+            </div>
+          </div>
+          <div>
+            <div style="color:#666; margin-bottom:6px; font-weight:600;">客戶主訴 / 需求</div>
+            <div style="border:1px solid #ddd; border-radius:6px; padding:10px; min-height:40px; color:#333;">下顎線鬆弛，想要 V 臉效果，朋友推薦音波</div>
+          </div>
+          <div>
+            <div style="color:#666; margin-bottom:6px; font-weight:600;">諮詢師評估</div>
+            <div style="border:1px solid #ddd; border-radius:6px; padding:10px; min-height:40px; color:#333;">下顎線明顯鬆弛，雙頰輕微凹陷。建議音波拉皮全臉 800 條，搭配下巴玻尿酸 1cc 加強輪廓線。</div>
+          </div>
+          <div>
+            <div style="color:#666; margin-bottom:6px; font-weight:600;">推薦療程計畫</div>
+            <table style="width:100%; border-collapse:collapse; font-size:12px;">
+              <thead>
+                <tr style="background:#f9f9f9;">
+                  <th style="padding:6px 8px; text-align:left; border-bottom:1px solid #eee;">項目</th>
+                  <th style="padding:6px 8px; text-align:left; border-bottom:1px solid #eee;">規格</th>
+                  <th style="padding:6px 8px; text-align:center; border-bottom:1px solid #eee;">確認</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding:6px 8px; border-bottom:1px solid #f0f0f0;">音波拉皮</td>
+                  <td style="padding:6px 8px; border-bottom:1px solid #f0f0f0;">全臉 800 條</td>
+                  <td style="padding:6px 8px; text-align:center; border-bottom:1px solid #f0f0f0;">\\u2705</td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 8px; border-bottom:1px solid #f0f0f0;">玻尿酸</td>
+                  <td style="padding:6px 8px; border-bottom:1px solid #f0f0f0;">下巴 1cc</td>
+                  <td style="padding:6px 8px; text-align:center; border-bottom:1px solid #f0f0f0;">\\u2705</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+            <div style="background:#f5f5f5; color:#666; padding:10px 20px; border-radius:8px; font-size:13px; cursor:pointer;">暫存</div>
+            <div style="background:#8D6E63; color:#fff; padding:10px 20px; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer;">確認 → 建凱惠消費單</div>
+          </div>
+        </div>
+        <div class="mock-sheet-improvements">
+          <div class="mock-improve">\\u2705 自動帶入客戶過敏史，諮詢師一眼看到</div>
+          <div class="mock-improve">\\u2705 諮詢紀錄結構化，方便日後查詢分析</div>
+          <div class="mock-improve">\\u2705 確認後直接建凱惠消費單</div>
+        </div>
+      </div>`
+  },
+
   // ===== Sean 販賣機專案 =====
   "sean-before": {
     title: "現況：會計手動建 A1 銷貨單",

@@ -340,7 +340,7 @@ const PROJECTS = {
         specCodes: ["B1-1", "B1-2", "B1-5"],
         status: "confirmed",
         col: 3, row: -0.5,
-        next: ["flow4"],
+        next: ["flow4", "flow3a-mock"],
         content: `掃碼報到 + 綁 LINE OA 後，手機上直接填寫
 對應紙本「貴賓基本資料」表所有欄位電子化
 
@@ -376,7 +376,7 @@ const PROJECTS = {
         specCodes: ["B3-1", "B3-2"],
         status: "discuss",
         col: 4, row: 0,
-        next: ["flow5"],
+        next: ["flow5", "flow4-mock"],
         content: `控場在 電子病歷 看當日報到清單 + 報到狀態
 → 指派諮詢師（確定）+ 指派美容師
 客戶結帳後 → 控場確認已結帳 → 指派醫師
@@ -395,7 +395,7 @@ const PROJECTS = {
         specCodes: ["B3-3", "B3-4", "B3-5"],
         status: "confirmed",
         col: 5, row: 0,
-        next: ["flow5a", "flow6"],
+        next: ["flow5a", "flow6", "flow5-mock"],
         content: `諮詢師在 電子病歷 看被指派的客戶清單
 1. 填寫諮詢紀錄
 2. 上傳客戶照片（B/A照、Inbody等）
@@ -584,6 +584,48 @@ BA照片流程：
 術後追蹤紀錄電子化
 追蹤時間點、客戶反饋、恢復狀況
 與客人微型頁面串接（客人可查看術後注意事項）`,
+        comments: []
+      },
+      // ===== 示意圖：新客報到 =====
+      {
+        id: "flow3a-mock",
+        category: "示意圖",
+        title: "新客報到（手機畫面）",
+        status: "confirmed",
+        col: 3, row: 2,
+        next: [],
+        mockup: "flow3a-mockup",
+        content: `客人掃 QR code 後在手機上填寫基本資料
+對應紙本「貴賓基本資料」表電子化
+填完自動寫入凱惠（API #2 + #3）`,
+        comments: []
+      },
+      // ===== 示意圖：控場派工 =====
+      {
+        id: "flow4-mock",
+        category: "示意圖",
+        title: "控場派工看板",
+        status: "discuss",
+        col: 5, row: 2,
+        next: [],
+        mockup: "flow4-mockup",
+        content: `控場即時看今日報到清單
+一鍵指派諮詢師和醫師
+新客/舊客、等候/諮詢中/施作中 狀態一目了然`,
+        comments: []
+      },
+      // ===== 示意圖：諮詢師作業 =====
+      {
+        id: "flow5-mock",
+        category: "示意圖",
+        title: "諮詢師紀錄畫面",
+        status: "confirmed",
+        col: 7, row: 2,
+        next: [],
+        mockup: "flow5-mockup",
+        content: `諮詢師填寫評估紀錄、推薦療程
+自動帶入客戶過敏史
+確認後直接建凱惠消費單`,
         comments: []
       },
     ]
