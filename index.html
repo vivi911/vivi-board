@@ -62,9 +62,7 @@
     </div>
     <div class="header-right">
       <div class="legend" id="board-legend">
-        <span class="legend-item"><span class="dot dot-confirmed"></span>已確認</span>
-        <span class="legend-item"><span class="dot dot-discuss"></span>待討論</span>
-        <span class="legend-item"><span class="dot dot-gap"></span>待開發</span>
+        <!-- 由 JS 根據專案動態產生：有系統標籤顯示系統色，無則顯示狀態色 -->
       </div>
       <span id="user-badge"></span>
       <button class="logout-btn" onclick="doLogout()" title="登出">登出</button>
@@ -113,6 +111,12 @@
           <option value="confirmed">✅ 已確認</option>
           <option value="discuss">📌 待討論</option>
           <option value="gap">❌ 待開發</option>
+        </select>
+      </div>
+      <div class="panel-status" id="panel-system-row" style="display:none;">
+        <label>系統：</label>
+        <select id="panel-system-select" onchange="updateCardSystem()">
+          <option value="">未指定</option>
         </select>
       </div>
       <div class="panel-content" id="panel-content"></div>

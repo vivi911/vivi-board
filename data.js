@@ -1,3 +1,12 @@
+// ===== 系統標籤設定（卡片左側色條代表操作系統）=====
+const PROJECT_SYSTEMS = {
+  "meili-emr": [
+    { value: "kaihui", label: "凱惠 POS", color: "#3A8A40" },
+    { value: "emr", label: "電子病歷 EMR", color: "#A8874A" }
+  ]
+  // 其他專案可自行擴充，沒定義就不顯示系統選單
+};
+
 // ===== Tab 設定 =====
 const PROJECT_TABS = {
   // 預設 Tab（所有專案都有）
@@ -1102,7 +1111,7 @@ const SPEC_FIELDS = {
           { name: "邀約管理／取代 GSheet（小編）", code: "A1", v1: "—", v2: "✅" },
           { name: "預約／掛號管理（小編）", code: "A2", v1: "✅", v2: "✅" },
           { name: "醫師班表管理（小編/主管）", code: "A3", v1: "✅", v2: "✅" },
-          { name: "行銷歸因追蹤（投手）", code: "A4", v1: "—", v2: "✅" },
+          { name: "行銷歸因追蹤／取代 GSheet（投手）", code: "A4", v1: "—", v2: "✅" },
           { name: "查詢凱惠可預約床位與時段（凱惠 API）", code: "A5", v1: "✅", v2: "✅" },
           { name: "預約建立與更新寫入凱惠（凱惠 API）", code: "A6", v1: "✅", v2: "✅" }
         ]

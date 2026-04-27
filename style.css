@@ -288,6 +288,12 @@ body {
 .dot-discuss { background: var(--yellow); }
 .dot-gap { background: var(--red); }
 
+.legend-divider {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin: 0 2px;
+}
+
 #user-badge {
   font-size: 12px;
   color: var(--text-secondary);
@@ -1041,10 +1047,12 @@ body {
   bottom: 12px;
   width: 3px;
   border-radius: 0 3px 3px 0;
+  background: var(--card-bar-color, var(--border));
 }
 
 .card-mockup-embed.status-discuss-bar::before { background: var(--yellow); }
 .card-mockup-embed.status-confirmed-bar::before { background: var(--green); }
+.card-mockup-embed[data-system]::before { background: var(--card-bar-color); }
 
 .card-mockup-label {
   font-size: 10px;
@@ -1802,7 +1810,7 @@ body {
   box-shadow: var(--shadow-gold), var(--shadow-md);
 }
 
-/* 卡片左邊的狀態色條 */
+/* 卡片左邊的色條（優先顯示系統歸屬色，無系統時 fallback 到狀態色）*/
 .card::before {
   content: '';
   position: absolute;
@@ -1811,13 +1819,17 @@ body {
   bottom: 12px;
   width: 3px;
   border-radius: 0 3px 3px 0;
-  background: var(--border);
+  background: var(--card-bar-color, var(--border));
   transition: background 0.2s;
 }
 
+/* 狀態色條（無系統標籤的專案使用）*/
 .card.status-confirmed-bar::before { background: var(--green); }
 .card.status-discuss-bar::before { background: var(--yellow); }
 .card.status-gap-bar::before { background: var(--red); }
+
+/* 系統歸屬色條（有系統標籤時，覆蓋狀態色）*/
+.card[data-system]::before { background: var(--card-bar-color); }
 
 .card-category {
   font-size: 10px;

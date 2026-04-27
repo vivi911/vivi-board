@@ -248,6 +248,15 @@ async function loadFromFirestore() {
     if (card) card.status = row.status;
   });
 
+  // 載入系統歸屬
+  const systemSnap = await db.collection('board_card_system').get();
+  systemSnap.forEach(doc => {
+    const row = doc.data();
+    if (!PROJECTS[row.project_id]) return;
+    const card = PROJECTS[row.project_id].cards.find(c => c.id === row.card_id);
+    if (card) card.system = row.system;
+  });
+
   // 載入留言
   const commentsSnap = await db.collection('board_comments')
     .orderBy('created_at', 'asc')
@@ -329,6 +338,25 @@ function subscribeRealtime() {
         }
       });
     });
+
+  // 監聽系統歸屬更新
+  db.collection('board_card_system')
+    .onSnapshot(snapshot => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'removed') return;
+        const row = change.doc.data();
+        if (!PROJECTS[row.project_id]) return;
+        const card = PROJECTS[row.project_id].cards.find(c => c.id === row.card_id);
+        if (card) {
+          card.system = row.system;
+          renderBoard();
+          if (currentProject === row.project_id && currentCardId === row.card_id) {
+            const sel = document.getElementById('panel-system-select');
+            if (sel) sel.value = row.system || '';
+          }
+        }
+      });
+    });
 }
 
 function formatTime(date) {
@@ -340,12 +368,33 @@ function switchProject(projectId) {
   currentProject = projectId;
   closePanel();
   renderTabs();
+  renderLegend();
   renderBrief();
   renderBoard();
   loadStickies().catch(e => console.warn('載入便利貼失敗', e));
   // 如果在訪談 Tab，載入訪談資料
   if (currentTab === 'interview') {
     loadInterview().then(renderInterview);
+  }
+}
+
+// ===== 圖例：有系統標籤顯示系統色，無則顯示狀態色 =====
+function renderLegend() {
+  const legend = document.getElementById('board-legend');
+  const systems = PROJECT_SYSTEMS[currentProject];
+  if (systems && systems.length > 0) {
+    legend.innerHTML = systems.map(s =>
+      `<span class="legend-item"><span class="dot" style="background:${s.color}"></span>${s.label}</span>`
+    ).join('') +
+      '<span class="legend-divider">|</span>' +
+      '<span class="legend-item"><span class="dot dot-confirmed"></span>已確認</span>' +
+      '<span class="legend-item"><span class="dot dot-discuss"></span>待討論</span>' +
+      '<span class="legend-item"><span class="dot dot-gap"></span>待開發</span>';
+  } else {
+    legend.innerHTML =
+      '<span class="legend-item"><span class="dot dot-confirmed"></span>已確認</span>' +
+      '<span class="legend-item"><span class="dot dot-discuss"></span>待討論</span>' +
+      '<span class="legend-item"><span class="dot dot-gap"></span>待開發</span>';
   }
 }
 
@@ -1176,12 +1225,29 @@ function renderBoard() {
     el.style.top = y + 'px';
     el.onclick = () => openPanel(card.id);
 
+    // 系統歸屬色條（覆蓋狀態色）
+    const systems = PROJECT_SYSTEMS[currentProject];
+    if (systems && card.system) {
+      const sys = systems.find(s => s.value === card.system);
+      if (sys) {
+        el.setAttribute('data-system', card.system);
+        el.style.setProperty('--card-bar-color', sys.color);
+      }
+    }
+
     const commentCount = card.comments ? card.comments.length : 0;
     const mockupData = card.mockup && MOCKUPS ? MOCKUPS[card.mockup] : null;
 
     if (mockupData) {
       // 示意畫面卡片：可自由縮放
       el.className = `card-mockup-embed status-${card.status}-bar`;
+      if (systems && card.system) {
+        const sys = systems.find(s => s.value === card.system);
+        if (sys) {
+          el.setAttribute('data-system', card.system);
+          el.style.setProperty('--card-bar-color', sys.color);
+        }
+      }
       el.style.width = '500px';
       el.innerHTML = `
         <div class="mockup-header">
@@ -1352,6 +1418,19 @@ function openPanel(cardId) {
   document.getElementById('panel-title').textContent = `【${card.category}】${card.title}`;
   document.getElementById('panel-status-select').value = card.status;
 
+  // 系統歸屬下拉選單
+  const systems = PROJECT_SYSTEMS[currentProject];
+  const systemRow = document.getElementById('panel-system-row');
+  const systemSelect = document.getElementById('panel-system-select');
+  if (systems && systems.length > 0) {
+    systemRow.style.display = '';
+    systemSelect.innerHTML = '<option value="">未指定</option>' +
+      systems.map(s => `<option value="${s.value}">${s.label}</option>`).join('');
+    systemSelect.value = card.system || '';
+  } else {
+    systemRow.style.display = 'none';
+  }
+
   let content = escapeHtml(card.content);
   content = content.replace(/\u{1F4CC}[^\n]*/gu, '<span class="highlight-discuss">$&</span>');
   content = content.replace(/\u274C[^\n]*/g, '<span class="highlight-gap">$&</span>');
@@ -1397,6 +1476,35 @@ async function updateCardStatus() {
     updated_by: currentUser.name,
     updated_at: firebase.firestore.FieldValue.serverTimestamp()
   });
+
+  renderBoard();
+
+  setTimeout(() => {
+    const el = document.getElementById(`card-${currentCardId}`);
+    if (el) el.classList.add('active');
+  }, 10);
+}
+
+// ===== 系統歸屬更新 =====
+async function updateCardSystem() {
+  if (!currentCardId) return;
+  const project = PROJECTS[currentProject];
+  const card = project.cards.find(c => c.id === currentCardId);
+  if (!card) return;
+
+  const newSystem = document.getElementById('panel-system-select').value || null;
+  card.system = newSystem;
+
+  // 寫入 Firestore
+  const docId = `${currentProject}_${currentCardId}`;
+  const docData = {
+    project_id: currentProject,
+    card_id: currentCardId,
+    system: newSystem,
+    updated_by: currentUser.name,
+    updated_at: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  await db.collection('board_card_system').doc(docId).set(docData);
 
   renderBoard();
 
